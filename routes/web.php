@@ -20,6 +20,7 @@ use App\Http\Controllers\WEB\CMS\TestimonialsController;
 use App\Http\Controllers\WEB\Admin\ReviewReportController;
 use App\Http\Controllers\WEB\Admin\AccountSettingController;
 
+//
 // Public Routes
 Route::get('/', fn() => view('welcome'));
 Route::get('/dashboard', fn() => view('dashboard'))->middleware(['auth', 'verified'])->name('dashboard');
