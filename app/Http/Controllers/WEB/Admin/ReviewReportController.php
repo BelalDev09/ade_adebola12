@@ -74,7 +74,7 @@ class ReviewReportController extends Controller
         ]);
 
         return redirect()
-            ->route('backend.admin.reports.show', $id)
+            ->route('backend.admin.reports.index', $id)
             ->with('success', 'Report status updated successfully');
     }
 

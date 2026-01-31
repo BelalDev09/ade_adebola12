@@ -65,6 +65,9 @@ Route::middleware('auth')->group(function () {
     Route::prefix('cms')->name('cms.')->group(function () {
         Route::get('/hero', [HeroSectionController::class, 'form'])->name('hero.form');
         Route::post('/hero', [HeroSectionController::class, 'store'])->name('hero.store');
+        //     Route::get('/hero/{id}', [HeroSectionController::class, 'show'])
+        // ->name('hero.show');
+
     });
 
     // Market Tools
@@ -86,9 +89,25 @@ Route::middleware('auth')->group(function () {
 
     // How It Works
     Route::prefix('why')->name('cms.')->group(function () {
+        // List
         Route::get('how-it-works', [HowItWorkController::class, 'form'])->name('how-it-works.form');
+        // Store
         Route::post('how-it-works', [HowItWorkController::class, 'store'])->name('how-it-works.store');
+        // Show
+        Route::get('how-it-works/{id}', [HowItWorkController::class, 'show']);
+        // Update
+        Route::post('how-it-works/update', [HowItWorkController::class, 'update'])->name('how-it-works.update');
+        // Delete
+        Route::delete('how-it-works/{id}', [HowItWorkController::class, 'delete']);
+        Route::post(
+            '/how-it-works/image-delete/{id}',
+            [HowItWorkController::class, 'deleteImage']
+        )->name('how-it-works.image-delete');
+
+        // Status toggle
+        Route::post('how-it-works/status/{id}', [HowItWorkController::class, 'updateStatus']);
     });
+
     // Testimonials
     Route::prefix('what')->name('cms.')->group(function () {
         Route::get('testimonials', [TestimonialsController::class, 'form'])->name('testimonials.form');

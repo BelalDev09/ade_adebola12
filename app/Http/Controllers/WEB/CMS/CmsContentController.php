@@ -43,7 +43,7 @@ class CmsContentController extends Controller
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('cms', 'public');
         }
-
+        $data['status'] = $request->has('status') ? 1 : 0;
         $cms = CmsContent::updateOrCreate(['id' => $request->id], $data);
 
 
@@ -66,6 +66,7 @@ class CmsContentController extends Controller
     {
         $cms->status = $request->status ? 1 : 0;
         $cms->save();
+
         return response()->json(['success' => 'Status updated successfully']);
     }
 }

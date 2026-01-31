@@ -24,7 +24,7 @@ class NotifyUser extends Notification implements ShouldBroadcast
      */
     public function via($notifiable): array
     {
-        return ['database', 'broadcast', 'mail'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -68,7 +68,7 @@ class NotifyUser extends Notification implements ShouldBroadcast
     /**
      * Fallback array (used by broadcast sometimes)
      */
-    public function toArray($notifiable): array
+    public function toArray($notifiable)
     {
         return $this->toDatabase($notifiable);
     }

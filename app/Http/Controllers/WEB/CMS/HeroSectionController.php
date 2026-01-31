@@ -15,6 +15,7 @@ class HeroSectionController extends Controller
     /**
      * Display the hero section edit form
      */
+
     public function form()
     {
         $cms = CmsContent::where([
@@ -36,7 +37,7 @@ class HeroSectionController extends Controller
             'description' => 'nullable|string',
             'btn_text'    => 'nullable|string|max:100',
             'btn_link'    => 'nullable|url|max:255',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'status'      => 'nullable|boolean',
         ]);
 
@@ -84,14 +85,23 @@ class HeroSectionController extends Controller
                 'order' => 1,
             ])
         );
+        Notification::send($users, new NotifyUser([
+            'title' => 'Hero updated section here.',
+            'thankyou' => 'Enjoy your favourite content.',
+            // 'url' => route('hero.show', $hero->id),
+            'hero_id' => $hero->id,
+        ]));
 
-        Notification::send($users, new NotifyUser($hero->toArray([
-            
-        ])));
+        // dd($request->$hero);
         // $users->notify(new NotifyUser($data));
 
         return back()->with('success', 'Hero section updated successfully!');
     }
+    // public function show($id)
+    // {
+    //     $hero = CmsContent::findOrFail($id);
+    //     return view('hero.show', compact('hero'));
+    // }
 }
 
 //

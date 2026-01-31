@@ -19,19 +19,18 @@
                         required>
                 </div>
 
+                <div class="col-12">
+                    <label>Description</label>
+                    <textarea name="description" id="description" class="form-control">{{ old('description', $cms?->description ?? '') }}</textarea>
+                </div>
                 <div class="col-md-6">
-                    <div class="form-check form-switch">
+                    <div class="form-check">
                         <input type="checkbox" class="form-check-input" id="status" name="status" value="1"
                             {{ old('status', $cms->status ?? 1) ? 'checked' : '' }}>
                         <label class="form-check-label fw-bold" id="statusLabel">
                             {{ old('status', $cms->status ?? 1) ? 'Active' : 'Inactive' }}
                         </label>
                     </div>
-                </div>
-
-                <div class="col-12">
-                    <label>Description</label>
-                    <textarea name="description" id="description" class="form-control">{{ old('description', $cms?->description ?? '') }}</textarea>
                 </div>
             </div>
 

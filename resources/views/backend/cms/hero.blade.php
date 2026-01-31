@@ -19,15 +19,6 @@
                         required>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label">Status</label><br>
-                    <div class="form-check form-switch">
-                        <input type="checkbox" class="form-check-input" id="status" name="status" value="1"
-                            {{ old('status', $cms?->status ?? 1) ? 'checked' : '' }}>
-                        <label class="form-check-label fw-bold" id="statusLabel" style="color: #198754;">Active</label>
-                    </div>
-                </div>
-
                 <div class="col-12">
                     <label class="form-label">Description</label>
                     <textarea name="description" rows="4" class="form-control">{{ old('description', $cms?->description ?? '') }}</textarea>
@@ -44,7 +35,6 @@
                     <input type="url" name="btn_link" value="{{ old('btn_link', $cms?->btn_link ?? '') }}"
                         class="form-control" placeholder="https://example.com">
                 </div>
-
                 <div class="col-md-6">
                     <label class="form-label">Hero Image</label>
                     <input type="file" name="image" class="form-control" id="heroImageInput"
@@ -52,8 +42,16 @@
 
                     <label class="form-label d-block mt-2">Preview</label>
                     <img id="heroImagePreview"
-                        src="{{ old('image_preview', $cms?->image ? asset('storage/' . $cms->image) : asset('images/placeholder.png')) }}"
+                        src="{{ isset($cms) && $cms->image_path ? asset('storage/' . $cms->image_path) : asset('images/placeholder.png') }}"
                         class="img-thumbnail" style="max-height: 140px; object-fit: cover;">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Status</label><br>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="status" name="status" value="1"
+                            {{ old('status', $cms?->status ?? 1) ? 'checked' : '' }}>
+                        <label class="form-check-label fw-bold" id="statusLabel" style="color: #198754;">Active</label>
+                    </div>
                 </div>
 
             </div>

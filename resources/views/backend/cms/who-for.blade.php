@@ -21,7 +21,7 @@
                             <textarea id="description" class="form-control"></textarea>
                         </div>
 
-                        <div class="form-check form-switch mb-3">
+                        <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="status" checked>
                             <label class="form-check-label fw-bold text-success" id="statusLabel">Active</label>
                         </div>
