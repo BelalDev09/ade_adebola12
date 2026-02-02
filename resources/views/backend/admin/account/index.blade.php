@@ -83,66 +83,38 @@
 
 @section('scripts')
     <script>
-        function livePreview(inputId, previewId) {
-            const input = document.getElementById(inputId);
-            const preview = document.getElementById(previewId);
+        document.addEventListener('DOMContentLoaded', function() {
 
-            input.addEventListener('change', function() {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        preview.src = e.target.result;
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
+            function showImagePreview(inputId, previewId) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
 
-        livePreview('logo', 'logoPreview');
-        livePreview('favicon', 'faviconPreview');
-
-        document.getElementById('accountForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-
-            fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(async res => {
-                    const data = await res.json();
-
-                    if (data.success) {
-                        Swal.fire('Success', data.success, 'success');
-
-                        if (data.logo) document.getElementById('logoPreview').src = data.logo + '?' +
-                            new Date().getTime();
-                        if (data.favicon) document.getElementById('faviconPreview').src = data.favicon +
-                            '?' + new Date().getTime();
-
-                        if (document.getElementById('footerText') && data.copyright_text) {
-                            document.getElementById('footerText').innerText = data.copyright_text;
+                input.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.src = e.target.result;
                         }
-                    } else if (data.errors) {
-                        let errorMsg = '';
-                        for (const key in data.errors) {
-                            errorMsg += `${data.errors[key].join(', ')}\n`;
-                        }
-                        Swal.fire('Error', errorMsg, 'error');
-                    } else {
-                        Swal.fire('Error', 'Something went wrong', 'error');
+                        reader.readAsDataURL(file);
                     }
-                })
-                .catch(err => {
-                    console.error(err);
-                    Swal.fire('Error', 'Server error', 'error');
                 });
+            }
+
+            showImagePreview('logo', 'logoPreview');
+            showImagePreview('favicon', 'faviconPreview');
+
+            document.querySelectorAll('.btn-primary[onclick]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetInputId = this.getAttribute('onclick').match(/'(.+)'/)[1];
+                    document.getElementById(targetInputId).click();
+                });
+            });
+
+            document.getElementById('accountForm').addEventListener('submit', function(e) {
+
+            });
+
         });
     </script>
-
-
 @endsection

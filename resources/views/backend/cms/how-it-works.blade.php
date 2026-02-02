@@ -104,17 +104,20 @@
                             <span class="ms-2 fw-bold" id="modalStatusLabel"></span>
                         </div>
                     </div>
-                    <div class="mb-3 position-relative" style="max-width: 200px;">
+                    <div class="mb-3 position-relative" style="max-width:200px;">
                         <label class="form-label d-block">Image Preview</label>
-                        <img id="modalImagePreview" src="{{ asset('images/placeholder.png') }}" class="img-thumbnail"
-                            style="width:100%; height:auto; object-fit:cover;">
+
+                        <img id="modalImagePreview" src="{{ asset('images/placeholder.png') }}" class="img-thumbnail w-100"
+                            style="object-fit:cover">
+
                         <button type="button" id="deleteImageBtn"
-                            class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle p-1"
-                            style="z-index:10; width:25px; height:25px; display:none;"
+                            class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                            style="width:26px;height:26px;z-index:10"
                             data-url="{{ route('cms.how-it-works.image-delete', ['id' => 0]) }}">
                             &times;
                         </button>
                     </div>
+
                     <div class="mb-3" id="modalImageInputWrapper">
                         <label class="form-label btn btn-outline-primary d-inline-flex align-items-center">
                             <i class="bi bi-upload me-2"></i> Choose Image
@@ -145,6 +148,7 @@
         }
 
         $(function() {
+
             const Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',
@@ -190,7 +194,8 @@
                             let checked = data == 1 ? 'checked' : '';
                             let label = data == 1 ? 'Active' : 'Inactive';
                             let labelClass = data == 1 ? 'text-success' : 'text-secondary';
-                            return `<div class="d-flex align-items-center">
+                            return `
+                        <div class="d-flex align-items-center">
                             <div class="form-check form-switch mb-0">
                                 <input class="form-check-input status-switch" type="checkbox" data-id="${row.id}" ${checked}>
                             </div>
@@ -208,7 +213,8 @@
 
             // Save / Update
             function saveHowItWorks(isModal = false) {
-                var formData = new FormData();
+                let formData = new FormData();
+
                 if (isModal) {
                     formData.append('id', $('#modalHowId').val());
                     formData.append('title', $('#modalTitle').val());
@@ -217,8 +223,7 @@
                     let modalImage = $('#modalImage')[0].files[0];
                     if (modalImage) formData.append('image', modalImage);
                 } else {
-                    var form = $('#howItWorksForm')[0];
-                    formData = new FormData(form);
+                    formData = new FormData($('#howItWorksForm')[0]);
                     formData.set('status', $('#status').is(':checked') ? 1 : 0);
                 }
 
@@ -234,8 +239,10 @@
                             title: res.message || res.success
                         });
                         table.ajax.reload();
-                        if (isModal) $('#howItWorksModal').modal('hide');
-                        else {
+
+                        if (isModal) {
+                            $('#howItWorksModal').modal('hide');
+                        } else {
                             $('#howItWorksForm')[0].reset();
                             $('#imagePreview').attr('src', "{{ asset('images/placeholder.png') }}");
                             $('#formTitle').text('Add How It Works Step');
@@ -249,6 +256,7 @@
                 e.preventDefault();
                 saveHowItWorks();
             });
+
             $('#modalSaveBtn').click(function() {
                 saveHowItWorks(true);
             });
@@ -260,123 +268,101 @@
                 $('#saveBtn').text('Save');
             });
 
-            // --- IMAGE & DELETE BUTTON LOGIC ---
-
-            function updateDeleteButtonVisibility() {
-                const imgSrc = $('#modalImagePreview').attr('src');
-                if (imgSrc && !imgSrc.includes('placeholder.png')) $('#deleteImageBtn').show();
-                else $('#deleteImageBtn').hide();
-            }
-
             // Edit / View modal open
             $(document).on('click', '.edit-btn, .view-btn', function() {
-                var id = $(this).data('id');
-                var isView = $(this).hasClass('view-btn');
+
+                let id = $(this).data('id');
+                let isView = $(this).hasClass('view-btn');
 
                 $.get("/why/how-it-works/" + id, function(data) {
+
                     $('#modalHowId').val(data.id);
                     $('#modalTitle').val(data.title);
                     $('#modalDescription').val(data.description);
                     $('#modalStatus').prop('checked', data.status == 1);
                     updateLabel($('#modalStatus'), $('#modalStatusLabel'));
 
-                    // Image preview
-                    $('#modalImagePreview').attr('src', data.image_path ? data.image_path :
-                        "{{ asset('images/placeholder.png') }}");
+                    $('#modalImagePreview').attr(
+                        'src',
+                        data.image_path ? data.image_path :
+                        "{{ asset('images/placeholder.png') }}"
+                    );
 
                     if (isView) {
-                        // View mode
                         $('#modalTitleText').text('View How It Works');
                         $('#modalTitle,#modalDescription,#modalStatus').prop('disabled', true);
                         $('#modalImageInputWrapper').hide();
                         $('#modalSaveBtn').hide();
                         $('#deleteImageBtn').hide();
+
                     } else {
-                        // Edit mode
                         $('#modalTitleText').text('Edit How It Works');
                         $('#modalTitle,#modalDescription,#modalStatus').prop('disabled', false);
                         $('#modalImageInputWrapper').show();
+                        $('#deleteImageBtn').show();
                         $('#modalSaveBtn').show();
-
-                        updateDeleteButtonVisibility
-                            ();
                     }
 
                     $('#howItWorksModal').modal('show');
                 });
             });
 
-            $('#modalImage').change(function(e) {
+            $('#modalImage').on('change', function(e) {
                 previewImage(e, 'modalImagePreview');
-                updateDeleteButtonVisibility();
-            });
-
-
-            $('#modalImage').change(function(e) {
-                previewImage(e, 'modalImagePreview');
-                updateDeleteButtonVisibility();
             });
 
             // Delete image
-            $('#deleteImageBtn').click(function() {
-                let id = $('#modalHowId').val();
-                if (!id) return;
-                if (!confirm('Remove this image?')) return;
+            $('#deleteImageBtn').on('click', function() {
 
-                let url = $(this).data('url').replace('/0', '/' + id);
-                $.post(url, {
-                    _token: "{{ csrf_token() }}"
-                }, function(res) {
+                let imgSrc = $('#modalImagePreview').attr('src');
+
+                if (imgSrc.includes('placeholder.png')) {
                     Swal.fire({
-                        icon: 'success',
-                        title: res.success,
+                        icon: 'info',
+                        title: 'No image to delete',
                         toast: true,
                         position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 2000
+                        timer: 1500,
+                        showConfirmButton: false
                     });
-                    $('#modalImagePreview').attr('src', "{{ asset('images/placeholder.png') }}");
-                    $('#modalImage').val('');
-                    updateDeleteButtonVisibility();
-                });
-            });
+                    return;
+                }
 
-            // Delete row
-            $(document).on('click', '.delete-btn', function() {
-                if (!confirm('Are you sure?')) return;
-                var id = $(this).data('id');
-                $.post("{{ url('/why/how-it-works') }}/" + id, {
-                    _method: 'DELETE',
-                    _token: "{{ csrf_token() }}"
-                }, function(res) {
-                    Toast.fire({
-                        icon: 'success',
-                        title: res.success
-                    });
-                    table.ajax.reload();
-                });
-            });
+                let id = $('#modalHowId').val();
+                if (!id) return;
 
-            // Status toggle
-            $(document).on('change', '.status-switch', function() {
-                var id = $(this).data('id');
-                var status = $(this).is(':checked') ? 1 : 0;
-                var $label = $(this).closest('div').find('.status-label');
-                if (status == 1) $label.text('Active').removeClass('text-secondary').addClass(
-                    'text-success');
-                else $label.text('Inactive').removeClass('text-success').addClass('text-secondary');
+                Swal.fire({
+                    title: 'Remove image?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, remove'
+                }).then((result) => {
 
-                $.post("{{ url('/why/how-it-works/status') }}/" + id, {
-                        _token: "{{ csrf_token() }}",
-                        status: status
-                    },
-                    function(res) {
-                        Toast.fire({
+                    if (!result.isConfirmed) return;
+
+                    let url = $(this).data('url').replace('/0', '/' + id);
+
+                    $.post(url, {
+                        _token: "{{ csrf_token() }}"
+                    }, function(res) {
+
+                        Swal.fire({
                             icon: 'success',
-                            title: res.success
+                            title: res.success,
+                            toast: true,
+                            position: 'top-end',
+                            timer: 2000,
+                            showConfirmButton: false
                         });
+
+                        $('#modalImagePreview')
+                            .attr('src', "{{ asset('images/placeholder.png') }}");
+
+                        $('#modalImage').val('');
                     });
+                });
             });
+
         });
     </script>
 @endpush

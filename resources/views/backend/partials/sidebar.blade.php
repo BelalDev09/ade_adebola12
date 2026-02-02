@@ -173,7 +173,7 @@
                 @php
                     $isSettingsOpen =
                         request()->routeIs('profile.*') ||
-                        request()->routeIs('smtp.*') ||
+                        request()->routeIs('admin.smtp.*') ||
                         request()->routeIs('backend.admin.account.*') ||
                         request()->routeIs('backend.admin.contact');
                 @endphp

@@ -58,13 +58,12 @@
                                 @php
                                     $sections = [
                                         'hero' => 'Hero',
-                                        'how_it_works' => 'How It Works',
-                                        'market_tools' => 'Market',
+                                        'how-it-works' => 'How It Works',
+                                        'market-tools' => 'Market',
                                         'testimonials' => 'Testimonials',
-                                        'who_for' => 'Who For Us',
+                                        'who-for' => 'Who For Us',
                                     ];
-
-                                    $selectedSection = old('section') ?? ($cms->section ?? '');
+                                    $selectedSection = old('section') ?? '';
                                 @endphp
                                 @foreach ($sections as $key => $val)
                                     <option value="{{ $key }}" {{ $selectedSection == $key ? 'selected' : '' }}>
@@ -76,48 +75,54 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Type</label>
-                            <input type="text" name="type" class="form-control"
-                                value="{{ old('card', $cms?->card ?? '') }}">
+                            <input type="text" name="type" class="form-control" value="{{ old('type', '') }}">
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label">Title</label>
-                            <input type="text" name="title" class="form-control"
-                                value="{{ old('title', $cms?->title ?? '') }}">
+                            <input type="text" name="title" class="form-control" value="{{ old('title', '') }}">
                         </div>
+
                         <div class="col-md-12">
                             <label class="form-label">Description</label>
-                            <textarea name="description" rows="4" class="form-control"></textarea>
+                            <textarea name="description" rows="4" class="form-control">{{ old('description', '') }}</textarea>
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label">Image</label>
                             <input type="file" name="image" class="form-control" onchange="previewHeroImage(event)">
                             <img id="heroImagePreview" src="{{ asset('images/placeholder.png') }}"
                                 class="img-thumbnail mt-2" style="max-height:120px">
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label">Button Text</label>
-                            <input type="text" name="btn_text" class="form-control">
+                            <input type="text" name="btn_text" class="form-control" value="{{ old('btn_text', '') }}">
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label">Button Link</label>
-                            <input type="url" name="btn_link" class="form-control">
+                            <input type="url" name="btn_link" class="form-control" value="{{ old('btn_link', '') }}">
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Status</label>
-                            @php
-                                $selectedStatus = old('status') ?? ($cms->status ?? 1);
-                            @endphp
-                            <select name="status" class="form-select">
-                                <option value="1" {{ $selectedStatus == 1 ? 'selected' : '' }}>Active</option>
-                                <option value="0" {{ $selectedStatus == 0 ? 'selected' : '' }}>Inactive</option>
-                            </select>
+                            <label class="form-label">Order</label>
+                            <input type="number" name="order" class="form-control" value="{{ old('order', 1) }}">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Order</label>
-                            <input type="number" name="order" class="form-control" value="1">
+                            <label class="form-label">Status</label>
+                            <input type="hidden" name="status" value="0">
+
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="status" value="1"
+                                    id="statusSwitch" {{ old('status', 1) == 1 ? 'checked' : '' }}>
+                                <label class="form-check-label" for="statusSwitch">
+                                    Active
+                                </label>
+                            </div>
                         </div>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button class="btn btn-primary" id="saveBtn">Save</button>
@@ -139,6 +144,7 @@
             positionClass: "toast-top-right",
             timeOut: "3000"
         };
+
         let table;
 
         $(function() {
@@ -180,8 +186,8 @@
                         searchable: false,
                         render: function(data, type, row) {
                             return `<div class="form-check form-switch">
-                        <input class="form-check-input status-switch" type="checkbox" data-id="${row.id}" ${data==1?'checked':''}>
-                    </div>`;
+                    <input class="form-check-input status-switch" type="checkbox" data-id="${row.id}" ${data==1?'checked':''}>
+                </div>`;
                         }
                     },
                     {
@@ -190,7 +196,7 @@
                         searchable: false,
                         render: function(data, type, row) {
                             return `<button class="btn btn-sm btn-info edit-btn" data-id="${row.id}">Edit</button>
-                            <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}">Delete</button>`;
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${row.id}">Delete</button>`;
                         }
                     }
                 ]
@@ -253,37 +259,30 @@
             $(document).on('click', '.edit-btn', function() {
                 let id = $(this).data('id');
                 $.get("/cms/" + id, function(data) {
-                    $('#cmsForm')[0].reset(); // Reset everything first
+                    $('#cmsForm')[0].reset();
                     $('#cmsForm input[name="id"]').val(data.id);
-
                     $('#cmsForm input[name="page_slug"]').val(data.page_slug);
-                    $('#cmsForm select[name="section"]').val(data.section).trigger('change');
+                    $('#cmsForm select[name="section"]').val(data.section);
                     $('#cmsForm input[name="type"]').val(data.type);
                     $('#cmsForm input[name="title"]').val(data.title);
                     $('#cmsForm textarea[name="description"]').val(data.description);
                     $('#cmsForm input[name="btn_text"]').val(data.btn_text);
                     $('#cmsForm input[name="btn_link"]').val(data.btn_link ?? '');
-                    $('#cmsForm select[name="status"]').val(data.status);
+                    $('#cmsForm input[name="status"]').prop('checked', data.status == 1);
                     $('#cmsForm input[name="order"]').val(data.order ?? 1);
-
                     $('#heroImagePreview').attr('src', data.image_path ? "/storage/" + data
-                        .image_path : '/images/placeholder.png');
-
+                        .image_path : '{{ asset('images/placeholder.png') }}');
                     $('#cmsModalLabel').text('Edit CMS Content');
                     $('#cmsModal').modal('show');
                 });
             });
-
-
-
-
 
             // Delete
             $(document).on('click', '.delete-btn', function() {
                 let id = $(this).data('id');
                 if (confirm('Are you sure?')) {
                     $.ajax({
-                        url: "{{ url('/cms') }}/" + id,
+                        url: "/cms/" + id,
                         type: 'DELETE',
                         data: {
                             _token: "{{ csrf_token() }}"
@@ -300,7 +299,7 @@
             $(document).on('change', '.status-switch', function() {
                 let id = $(this).data('id');
                 let status = $(this).is(':checked') ? 1 : 0;
-                $.post("{{ url('/cms/status') }}/" + id, {
+                $.post("/cms/status/" + id, {
                     _token: "{{ csrf_token() }}",
                     status: status
                 }, function(res) {

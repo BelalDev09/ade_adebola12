@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Setting;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -36,5 +38,8 @@ class AppServiceProvider extends ServiceProvider
                 ->salutation('Regards, ' . config('app.name'));
         });
         Paginator::useBootstrap();
+        View::composer('backend.partials.footer', function ($view) {
+            $view->with('settings', Setting::first());
+        });
     }
 }

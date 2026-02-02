@@ -29,11 +29,11 @@
                         <!-- <div class="app-menu navbar-menu" id="sidebar-menu"> -->
                         <button type="button"
                             class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger material-shadow-none"
-                            id="topnav-hamburger-icon">
+                            id="
                             <span class="hamburger-icon">
-                                <span></span>
-                                <span></span>
-                                <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
                             </span>
                         </button>
                         <script>
@@ -660,12 +660,8 @@
                                 <a class="dropdown-item" href="{{ route('profile.edit') }}"><i
                                         class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span
                                         class="align-middle">Profile</span></a>
-                                <a class="dropdown-item"
-                                    href="{{ asset('Backend/assets/pages/pages-faqs.html') }}"><i
-                                        class="mdi mdi-lifebuoy text-muted fs-16 align-middle me-1"></i> <span
-                                        class="align-middle">Help</span></a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{{ route('profile.edit') }}"><span
+                                <a class="dropdown-item" href="{{ route('backend.admin.account.edit') }}"><span
                                         class="badge bg-success-subtle text-success mt-1 float-end">New</span><i
                                         class="mdi mdi-cog-outline text-muted fs-16 align-middle me-1"></i> <span
                                         class="align-middle">Settings</span></a>
