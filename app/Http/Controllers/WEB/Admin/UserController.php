@@ -19,21 +19,21 @@ class UserController extends Controller
 
             return DataTables::of($users)
                 ->addIndexColumn()
-                ->addColumn('name', fn ($row) => $row->name)
+                ->addColumn('name', fn($row) => $row->name)
                 ->addColumn('action', function ($row) {
                     return '
                         <button class="btn btn-sm btn-warning me-1"
                             data-bs-toggle="modal"
                             data-bs-target="#userModal"
                             data-action="edit"
-                            data-id="'.$row->id.'"
-                            data-first_name="'.$row->first_name.'"
-                            data-last_name="'.$row->last_name.'"
-                            data-email="'.$row->email.'"
-                            data-avatar="'.($row->avatar ? asset("storage/".$row->avatar) : '').'">
+                            data-id="' . $row->id . '"
+                            data-first_name="' . $row->first_name . '"
+                            data-last_name="' . $row->last_name . '"
+                            data-email="' . $row->email . '"
+                            data-avatar="' . ($row->avatar ? asset("storage/" . $row->avatar) : '') . '">
                             Edit
                         </button>
-                        <button class="btn btn-sm btn-danger delete-user" data-id="'.$row->id.'">
+                        <button class="btn btn-sm btn-danger delete-user" data-id="' . $row->id . '">
                             Delete
                         </button>
                     ';
@@ -49,15 +49,15 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
+            'first_name' => 'nullable|string|max:255',
+            'last_name'  => 'nullable|string|max:255',
             'email'      => 'required|email|unique:users,email',
             'password'   => 'required|string|min:6',
             'avatar'     => 'nullable|image|max:2048',
         ]);
 
         $data = $request->only('first_name', 'last_name', 'email');
-        $data['name'] = $request->first_name.' '.$request->last_name;
+        $data['name'] = $request->first_name . ' ' . $request->last_name;
         $data['password'] = Hash::make($request->password);
 
         if ($request->hasFile('avatar')) {
@@ -73,15 +73,15 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,'.$user->id,
+            'first_name' => 'nullable|string|max:255',
+            'last_name'  => 'nullable|string|max:255',
+            'email'      => 'required|email|unique:users,email,' . $user->id,
             'password'   => 'nullable|string|min:6',
             'avatar'     => 'nullable|image|max:2048',
         ]);
 
         $data = $request->only('first_name', 'last_name', 'email');
-        $data['name'] = $request->first_name.' '.$request->last_name;
+        $data['name'] = $request->first_name . ' ' . $request->last_name;
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);

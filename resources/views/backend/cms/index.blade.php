@@ -51,6 +51,7 @@
                             <label class="form-label">Page</label>
                             <input type="text" name="page_slug" class="form-control" value="landing-page" required>
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label">Section</label>
                             <select name="section" class="form-select" required>
@@ -62,11 +63,11 @@
                                         'testimonials' => 'Testimonials',
                                         'who_for' => 'Who For Us',
                                     ];
+
+                                    $selectedSection = old('section') ?? ($cms->section ?? '');
                                 @endphp
                                 @foreach ($sections as $key => $val)
-                                    {{-- Default hero if no data is set --}}
-                                    <option value="{{ $key }}"
-                                        {{ (old('section') ?? 'hero') == $key ? 'selected' : '' }}>
+                                    <option value="{{ $key }}" {{ $selectedSection == $key ? 'selected' : '' }}>
                                         {{ $val }}
                                     </option>
                                 @endforeach
@@ -75,11 +76,13 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Type</label>
-                            <input type="text" name="type" class="form-control">
+                            <input type="text" name="type" class="form-control"
+                                value="{{ old('card', $cms?->card ?? '') }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Title</label>
-                            <input type="text" name="title" class="form-control">
+                            <input type="text" name="title" class="form-control"
+                                value="{{ old('title', $cms?->title ?? '') }}">
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Description</label>
@@ -99,11 +102,15 @@
                             <label class="form-label">Button Link</label>
                             <input type="url" name="btn_link" class="form-control">
                         </div>
+
                         <div class="col-md-3">
                             <label class="form-label">Status</label>
+                            @php
+                                $selectedStatus = old('status') ?? ($cms->status ?? 1);
+                            @endphp
                             <select name="status" class="form-select">
-                                <option value="1" selected>Active</option>
-                                <option value="0">Inactive</option>
+                                <option value="1" {{ $selectedStatus == 1 ? 'selected' : '' }}>Active</option>
+                                <option value="0" {{ $selectedStatus == 0 ? 'selected' : '' }}>Inactive</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -245,28 +252,30 @@
             // Edit
             $(document).on('click', '.edit-btn', function() {
                 let id = $(this).data('id');
-                $.get("{{ url('/cms') }}/" + id, function(data) {
+                $.get("/cms/" + id, function(data) {
+                    $('#cmsForm')[0].reset(); // Reset everything first
                     $('#cmsForm input[name="id"]').val(data.id);
-                    $('#cmsForm input[name="page_slug"]').val(data.page_slug);
-                    $('#cmsForm select[name="section"]').val(data.section ? data.section : 'hero');
 
+                    $('#cmsForm input[name="page_slug"]').val(data.page_slug);
+                    $('#cmsForm select[name="section"]').val(data.section).trigger('change');
                     $('#cmsForm input[name="type"]').val(data.type);
                     $('#cmsForm input[name="title"]').val(data.title);
                     $('#cmsForm textarea[name="description"]').val(data.description);
                     $('#cmsForm input[name="btn_text"]').val(data.btn_text);
                     $('#cmsForm input[name="btn_link"]').val(data.btn_link ?? '');
-                    $('#cmsForm select[name="status"]').val(data.status !== null ? data.status : 1);
+                    $('#cmsForm select[name="status"]').val(data.status);
+                    $('#cmsForm input[name="order"]').val(data.order ?? 1);
 
-                    $('#cmsForm input[name="order"]').val(data.order);
-
-                    // Image preview
-                    $('#heroImagePreview').attr('src', data.image_path ? "{{ asset('storage') }}/" +
-                        data.image_path : '{{ asset('images/placeholder.png') }}');
+                    $('#heroImagePreview').attr('src', data.image_path ? "/storage/" + data
+                        .image_path : '/images/placeholder.png');
 
                     $('#cmsModalLabel').text('Edit CMS Content');
                     $('#cmsModal').modal('show');
                 });
             });
+
+
+
 
 
             // Delete

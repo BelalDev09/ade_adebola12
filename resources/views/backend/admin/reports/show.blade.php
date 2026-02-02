@@ -73,22 +73,29 @@
             <hr>
 
             {{-- Actions --}}
-            @if ($report->status === 'pending')
-                <form method="POST" action="{{ route('backend.admin.reports.update-status', $report->id) }}"
-                    class="d-flex gap-2">
-                    @csrf
+            <form method="POST" action="{{ route('backend.admin.reports.update-status', $report->id) }}"
+                class="d-flex gap-2">
+                @csrf
+
+                @if ($report->status !== 'approved')
                     <button name="status" value="approved" class="btn btn-success">
                         Approve
                     </button>
+                @endif
+
+                @if ($report->status !== 'rejected')
                     <button name="status" value="rejected" class="btn btn-danger">
                         Reject
                     </button>
-                </form>
-            @else
-                <p class="text-muted">
-                    This report has already been {{ ucfirst($report->status) }}.
-                </p>
+                @endif
+            </form>
+
+            @if ($report->status !== 'pending')
+                <small class="text-muted">
+                    Current status: <strong>{{ ucfirst($report->status) }}</strong>
+                </small>
             @endif
+
 
         </div>
     </div>

@@ -197,6 +197,7 @@
                                     <i class="ri-mail-line me-1"></i> SMTP
                                 </a>
                             </li>
+
                             <li class="nav-item">
                                 <a href="{{ route('backend.admin.account.edit') }}"
                                     class="nav-link {{ request()->routeIs('backend.admin.account.*') ? 'active' : '' }}">
