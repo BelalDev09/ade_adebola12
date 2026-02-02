@@ -29,20 +29,30 @@
                         <!-- <div class="app-menu navbar-menu" id="sidebar-menu"> -->
                         <button type="button"
                             class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger material-shadow-none"
-                            id="
+                            id="topnav-hamburger-icon">
                             <span class="hamburger-icon">
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
                             </span>
                         </button>
-                        <script>
-                            $(document).ready(function() {
-                                $('#topnav-hamburger-icon').on('click', function() {
-                                    $('body').toggleClass('sidebar-collapsed');
-                                });
+
+                        {{-- <script>
+                            // এই অংশটা খুঁজে বের করো এবং ঠিক করো
+                            document.getElementById("topnav-hamburger-icon")?.addEventListener("click", O);
+
+                            // অথবা আরও ভালো এভাবে লেখো (শেষের দিকে)
+                            document.addEventListener("DOMContentLoaded", function() {
+                                const hamburgerBtn = document.getElementById("topnav-hamburger-icon");
+                                if (hamburgerBtn) {
+                                    hamburgerBtn.addEventListener("click", O);
+                                    console.log("Hamburger button listener attached successfully");
+                                } else {
+                                    console.warn("Hamburger button with id 'topnav-hamburger-icon' not found");
+                                }
                             });
-                        </script>
+                        </script> --}}
+
 
                         <!-- </div> -->
 
