@@ -26,7 +26,8 @@
                                 </span>
                             </a>
                         </div>
-                        <!-- <div class="app-menu navbar-menu" id="sidebar-menu"> -->
+                        {{-- <div class="app-menu navbar-menu" id="sidebar-menu"> --}}
+                        {{-- TOPNAV HAMBURGER --}}
                         <button type="button"
                             class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger material-shadow-none"
                             id="topnav-hamburger-icon">
@@ -37,21 +38,48 @@
                             </span>
                         </button>
 
-                        {{-- <script>
-                            // এই অংশটা খুঁজে বের করো এবং ঠিক করো
-                            document.getElementById("topnav-hamburger-icon")?.addEventListener("click", O);
-
-                            // অথবা আরও ভালো এভাবে লেখো (শেষের দিকে)
+                        <script>
                             document.addEventListener("DOMContentLoaded", function() {
-                                const hamburgerBtn = document.getElementById("topnav-hamburger-icon");
-                                if (hamburgerBtn) {
-                                    hamburgerBtn.addEventListener("click", O);
-                                    console.log("Hamburger button listener attached successfully");
-                                } else {
-                                    console.warn("Hamburger button with id 'topnav-hamburger-icon' not found");
+                                const hamburger = document.querySelector(".hamburger-icon");
+                                const topnavBtn = document.getElementById("topnav-hamburger-icon");
+
+                                topnavBtn.addEventListener("click", function() {
+                                    hamburger.classList.toggle("open");
+                                    document.body.classList.toggle("twocolumn-panel");
+                                });
+
+                                const currentPath = window.location.pathname.split("/").pop();
+
+                                document.querySelectorAll("#navbar-nav a.nav-link").forEach(link => {
+                                    const linkPath = link.getAttribute("href").split("/").pop();
+                                    if (linkPath === currentPath) {
+                                        link.classList.add("active");
+
+                                        const collapseParent = link.closest(".collapse.menu-dropdown");
+                                        if (collapseParent) {
+                                            collapseParent.classList.add("show");
+                                            const parentLink = collapseParent.previousElementSibling;
+                                            if (parentLink) parentLink.classList.remove("collapsed");
+                                        }
+                                    }
+                                });
+
+                                // Dropdown overflow check adjustment
+                                function adjustDropdown() {
+                                    document.querySelectorAll("#navbar-nav .menu-dropdown").forEach(dd => {
+                                        const rect = dd.getBoundingClientRect();
+                                        if (rect.right > window.innerWidth) {
+                                            dd.classList.add("dropdown-custom-right");
+                                        } else {
+                                            dd.classList.remove("dropdown-custom-right");
+                                        }
+                                    });
                                 }
+
+                                window.addEventListener("resize", adjustDropdown);
+                                adjustDropdown();
                             });
-                        </script> --}}
+                        </script>
 
 
                         <!-- </div> -->
