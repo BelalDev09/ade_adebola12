@@ -31,7 +31,7 @@ class NotificationSeeder extends Seeder
                         'message' => "This is seeded notification number {$i}",
                         'url' => url('/'),
                     ]),
-                    'read_at' => $i % 3 === 0 ? Carbon::now() : null, // কিছু read, কিছু unread
+                    'read_at' => $i % 3 === 0 ? Carbon::now() : null,
                     'created_at' => now()->subMinutes($i),
                     'updated_at' => now()->subMinutes($i),
                 ]);

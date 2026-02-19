@@ -1,24 +1,26 @@
 <?php
 
-use App\Models\Review;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WEB\PersonController;
-use App\Http\Controllers\WEB\ContactController;
-use App\Http\Controllers\WEB\Admin\SmtpController;
-use App\Http\Controllers\WEB\Admin\UserController;
-use App\Http\Controllers\WEB\CMS\WhoForController;
-use App\Http\Controllers\WEB\Admin\ReviewController;
-use App\Http\Controllers\WEB\NotificationController;
-use App\Http\Controllers\WEB\Admin\SupportController;
-use App\Http\Controllers\WEB\CMS\HowItWorkController;
-use App\Http\Controllers\WEB\CMS\CmsContentController;
+use App\Http\Controllers\WEB\Admin\AccountSettingController;
 use App\Http\Controllers\WEB\Admin\DashboardController;
+use App\Http\Controllers\WEB\Admin\ReviewController;
+use App\Http\Controllers\WEB\Admin\ReviewReportController;
+use App\Http\Controllers\WEB\Admin\SmtpController;
+use App\Http\Controllers\WEB\Admin\SupportController;
+use App\Http\Controllers\WEB\Admin\UserController;
+use App\Http\Controllers\Web\backend\PremissionController;
+use App\Http\Controllers\Web\backend\RoleController;
+use App\Http\Controllers\WEB\CMS\CmsContentController;
 use App\Http\Controllers\WEB\CMS\HeroSectionController;
+use App\Http\Controllers\WEB\CMS\HowItWorkController;
 use App\Http\Controllers\WEB\CMS\MarketToolsController;
 use App\Http\Controllers\WEB\CMS\TestimonialsController;
-use App\Http\Controllers\WEB\Admin\ReviewReportController;
-use App\Http\Controllers\WEB\Admin\AccountSettingController;
+use App\Http\Controllers\WEB\CMS\WhoForController;
+use App\Http\Controllers\WEB\ContactController;
+use App\Http\Controllers\WEB\NotificationController;
+use App\Http\Controllers\WEB\PersonController;
+use App\Models\Review;
+use Illuminate\Support\Facades\Route;
 
 //
 // Public Routes
@@ -165,6 +167,24 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/notification/mark-all-read', [NotificationController::class, 'markAllRead'])
         ->name('notifications.markAllRead');
+
+        /**
+         * Role and Permissions
+         */
+
+Route::prefix('permissions')->controller(PremissionController::class)->group(function () {
+    Route::get('/list', 'index')->name('admin.permissions.list');
+    Route::get('/create', 'create')->name('admin.permissions.create');
+});
+
+Route::prefix('role')->controller(RoleController::class)->group(function () {
+    Route::get('/list', 'index')->name('admin.role.list');
+    Route::get('/create', 'create')->name('admin.role.create');
+    Route::post('/store', 'store')->name('admin.role.store');
+    Route::get('/edit/{id}', 'edit')->name('admin.role.edit');
+    Route::post('/update/{id}', 'update')->name('admin.role.update');
+    Route::delete('/destroy/{id}', 'destroy')->name('admin.role.destroy');
+});
 });
 
 require __DIR__ . '/auth.php';
