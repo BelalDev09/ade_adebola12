@@ -22,15 +22,31 @@ class AccountSettingController extends Controller
             'copyright_text' => 'required|string|max:255',
             'logo' => 'nullable|image|max:2048',
             'favicon' => 'nullable|image|max:2048',
+            'logo_remove' => 'nullable|in:0,1',
+            'favicon_remove' => 'nullable|in:0,1',
         ]);
 
         $settings = Setting::firstOrCreate([]);
+
+        if (($data['logo_remove'] ?? '0') === '1') {
+            if ($settings->logo) {
+                Storage::disk('public')->delete($settings->logo);
+            }
+            $data['logo'] = null;
+        }
 
         if ($request->hasFile('logo')) {
             if ($settings->logo) {
                 Storage::disk('public')->delete($settings->logo);
             }
             $data['logo'] = $request->file('logo')->store('settings', 'public');
+        }
+
+        if (($data['favicon_remove'] ?? '0') === '1') {
+            if ($settings->favicon) {
+                Storage::disk('public')->delete($settings->favicon);
+            }
+            $data['favicon'] = null;
         }
 
         if ($request->hasFile('favicon')) {

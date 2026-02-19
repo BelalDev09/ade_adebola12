@@ -38,50 +38,6 @@
                             </span>
                         </button>
 
-                        <script>
-                            document.addEventListener("DOMContentLoaded", function() {
-                                const hamburger = document.querySelector(".hamburger-icon");
-                                const topnavBtn = document.getElementById("topnav-hamburger-icon");
-
-                                topnavBtn.addEventListener("click", function() {
-                                    hamburger.classList.toggle("open");
-                                    document.body.classList.toggle("twocolumn-panel");
-                                });
-
-                                const currentPath = window.location.pathname.split("/").pop();
-
-                                document.querySelectorAll("#navbar-nav a.nav-link").forEach(link => {
-                                    const linkPath = link.getAttribute("href").split("/").pop();
-                                    if (linkPath === currentPath) {
-                                        link.classList.add("active");
-
-                                        const collapseParent = link.closest(".collapse.menu-dropdown");
-                                        if (collapseParent) {
-                                            collapseParent.classList.add("show");
-                                            const parentLink = collapseParent.previousElementSibling;
-                                            if (parentLink) parentLink.classList.remove("collapsed");
-                                        }
-                                    }
-                                });
-
-                                // Dropdown overflow check adjustment
-                                function adjustDropdown() {
-                                    document.querySelectorAll("#navbar-nav .menu-dropdown").forEach(dd => {
-                                        const rect = dd.getBoundingClientRect();
-                                        if (rect.right > window.innerWidth) {
-                                            dd.classList.add("dropdown-custom-right");
-                                        } else {
-                                            dd.classList.remove("dropdown-custom-right");
-                                        }
-                                    });
-                                }
-
-                                window.addEventListener("resize", adjustDropdown);
-                                adjustDropdown();
-                            });
-                        </script>
-
-
                         <!-- </div> -->
 
                         <!-- App Search-->
@@ -545,52 +501,6 @@
                                 <i class='bx bx-moon fs-22'></i>
                             </button>
                         </div>
-                        <style>
-                            .dark - mode {
-                                background - color: #121212;
-                                color: # f5f5f5;
-                            }
-
-                            .dark - mode.card {
-                                background - color: #1e1e1e;
-                                color: # f5f5f5;
-                            }
-
-                            /* You can extend dark mode styling for navbar, buttons, etc. */
-                        </style>
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const btn = document.querySelector('.light-dark-mode');
-                                const icon = btn.querySelector('i');
-
-                                btn.addEventListener('click', function() {
-                                    document.body.classList.toggle('dark-mode');
-
-                                    // Change icon
-                                    if (document.body.classList.contains('dark-mode')) {
-                                        icon.classList.remove('bx-moon');
-                                        icon.classList.add('bx-sun');
-                                    } else {
-                                        icon.classList.remove('bx-sun');
-                                        icon.classList.add('bx-moon');
-                                    }
-
-                                    // store preference
-                                    if (document.body.classList.contains('dark-mode')) {
-                                        localStorage.setItem('darkMode', 'enabled');
-                                    } else {
-                                        localStorage.setItem('darkMode', 'disabled');
-                                    }
-                                });
-
-                                // Load saved
-                                if (localStorage.getItem('darkMode') === 'enabled') {
-                                    document.body.classList.add('dark-mode');
-                                    icon.classList.remove('bx-moon');
-                                    icon.classList.add('bx-sun');
-                                }
-                            });
-                        </script>
                         <!-- notification -->
                         <li class="nav-item dropdown border-left">
                             @php
@@ -695,9 +605,16 @@
                             <div class="dropdown-menu dropdown-menu-end">
                                 <!-- item-->
                                 <h6 class="dropdown-header">Welcome {{ $user->name }}!</h6>
-                                <a class="dropdown-item" href="{{ route('profile.edit') }}"><i
-                                        class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span
-                                        class="align-middle">Profile</span></a>
+                                @can('profile.view')
+                                    <a class="dropdown-item" href="{{ route('profile.show') }}"><i
+                                            class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span
+                                            class="align-middle">Profile</span></a>
+                                @endcan
+                                @can('profile.edit')
+                                    <a class="dropdown-item" href="{{ route('profile.edit') }}"><i
+                                            class="mdi mdi-account-edit text-muted fs-16 align-middle me-1"></i> <span
+                                            class="align-middle">Profile Settings</span></a>
+                                @endcan
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="{{ route('backend.admin.account.edit') }}"><span
                                         class="badge bg-success-subtle text-success mt-1 float-end">New</span><i

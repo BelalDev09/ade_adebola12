@@ -89,10 +89,15 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">Image</label>
-                            <input type="file" name="image" class="form-control" onchange="previewHeroImage(event)">
-                            <img id="heroImagePreview" src="{{ asset('images/placeholder.png') }}"
-                                class="img-thumbnail mt-2" style="max-height:120px">
+                            @include('backend.partials.form.image-input', [
+                                'name' => 'image',
+                                'label' => 'Image',
+                                'value' => null,
+                                'accept' => 'image/*',
+                                'height' => 160,
+                                'removeName' => 'image_remove',
+                                'id' => 'cmsImageInput',
+                            ])
                         </div>
 
                         <div class="col-md-6">
@@ -207,22 +212,17 @@
                 $('#cmsForm')[0].reset();
                 $('#cmsForm input[name="id"]').val('');
                 $('#cmsModalLabel').text('Create CMS Content');
-                $('#heroImagePreview').attr('src', '{{ asset('images/placeholder.png') }}');
+                $('#cmsForm [data-remove-flag]').val('0');
+                const dr = $('#cmsImageInput').data('dropify');
+                if (dr) {
+                    dr.resetPreview();
+                    dr.clearElement();
+                    dr.settings.defaultFile = '';
+                    dr.destroy();
+                    dr.init();
+                }
                 $('#cmsModal').modal('show');
             });
-
-            // Image preview
-            window.previewHeroImage = function(event) {
-                const input = event.target;
-                const preview = document.getElementById('heroImagePreview');
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = e => preview.src = e.target.result;
-                    reader.readAsDataURL(input.files[0]);
-                } else {
-                    preview.src = '{{ asset('images/placeholder.png') }}';
-                }
-            }
 
             // Save / Update
             $('#cmsForm').submit(function(e) {
@@ -270,8 +270,16 @@
                     $('#cmsForm input[name="btn_link"]').val(data.btn_link ?? '');
                     $('#cmsForm input[name="status"]').prop('checked', data.status == 1);
                     $('#cmsForm input[name="order"]').val(data.order ?? 1);
-                    $('#heroImagePreview').attr('src', data.image_path ? "/storage/" + data
-                        .image_path : '{{ asset('images/placeholder.png') }}');
+                    $('#cmsForm [data-remove-flag]').val('0');
+                    const dr = $('#cmsImageInput').data('dropify');
+                    if (dr) {
+                        dr.resetPreview();
+                        dr.clearElement();
+                        dr.settings.defaultFile = data.image_path ? "/storage/" + data.image_path :
+                            '';
+                        dr.destroy();
+                        dr.init();
+                    }
                     $('#cmsModalLabel').text('Edit CMS Content');
                     $('#cmsModal').modal('show');
                 });

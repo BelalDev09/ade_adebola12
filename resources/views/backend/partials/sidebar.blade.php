@@ -28,6 +28,7 @@
                 <li class="menu-title"><span>Menu</span></li>
 
                 {{-- DASHBOARD --}}
+                @can('dashboard.view')
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                         href="{{ route('dashboard') }}">
@@ -35,13 +36,15 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
+                @endcan
 
                 {{-- CONTENT --}}
                 <li class="menu-title"><span>Content</span></li>
 
                 {{-- USER MANAGEMENT --}}
+                @can('users.manage')
                 @php
-                    $isUserOpen = request()->routeIs('admin.users.*');
+                $isUserOpen = request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*');
                 @endphp
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $isUserOpen ? '' : 'collapsed' }}" href="#sidebarUser"
@@ -57,17 +60,35 @@
                                     Users List
                                 </a>
                             </li>
+                            @can('roles.manage')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.roles.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.roles.index') ? 'active' : '' }}">
+                                    Roles
+                                </a>
+                            </li>
+                            @endcan
+                            @can('permissions.manage')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.permissions.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.permissions.index') ? 'active' : '' }}">
+                                    Permissions
+                                </a>
+                            </li>
+                            @endcan
                         </ul>
                     </div>
                 </li>
+                @endcan
 
                 {{-- CONTENT SECTION --}}
                 @php
-                    $isContentOpen =
-                        request()->routeIs('backend.admin.reviews.*') ||
-                        request()->routeIs('backend.admin.reports.*') ||
-                        request()->routeIs('backend.admin.contact');
+                $isContentOpen =
+                request()->routeIs('backend.admin.reviews.*') ||
+                request()->routeIs('backend.admin.reports.*') ||
+                request()->routeIs('backend.admin.contact');
                 @endphp
+                @if (auth()->user()?->can('reviews.manage') || auth()->user()?->can('reports.manage'))
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $isContentOpen ? '' : 'collapsed' }}" href="#sidebarContent"
                         data-bs-toggle="collapse" aria-expanded="{{ $isContentOpen ? 'true' : 'false' }}">
@@ -76,25 +97,31 @@
                     </a>
                     <div class="collapse menu-dropdown {{ $isContentOpen ? 'show' : '' }}" id="sidebarContent">
                         <ul class="nav nav-sm flex-column">
+                            @can('reviews.manage')
                             <li class="nav-item">
                                 <a href="{{ route('backend.admin.reviews.index') }}"
                                     class="nav-link {{ request()->routeIs('backend.admin.reviews.index') ? 'active' : '' }}">
                                     <i class="ri-chat-check-line me-1"></i> Reviews
                                 </a>
                             </li>
+                            @endcan
+                            @can('reports.manage')
                             <li class="nav-item">
                                 <a href="{{ route('backend.admin.reports.index') }}"
                                     class="nav-link {{ request()->routeIs('backend.admin.reports.index') ? 'active' : '' }}">
                                     <i class="ri-file-warning-line me-1"></i> Reports Reviews
                                 </a>
                             </li>
+                            @endcan
                         </ul>
                     </div>
                 </li>
+                @endif
 
                 {{-- DYNAMIC PAGE --}}
+                @can('support.manage')
                 @php
-                    $isDynamicOpen = request()->routeIs('admin.support.*');
+                $isDynamicOpen = request()->routeIs('admin.support.*');
                 @endphp
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $isDynamicOpen ? '' : 'collapsed' }}" href="#sideDynamic"
@@ -113,13 +140,15 @@
                         </ul>
                     </div>
                 </li>
+                @endcan
 
                 {{-- PAGES --}}
                 <li class="menu-title"><span>Pages</span></li>
 
                 {{-- LANDING PAGE CMS --}}
+                @can('cms.manage')
                 @php
-                    $isLandingOpen = request()->routeIs('cms.*') || request()->routeIs('backend.cms.index');
+                $isLandingOpen = request()->routeIs('cms.*') || request()->routeIs('backend.cms.index');
                 @endphp
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $isLandingOpen ? 'active' : '' }}" href="#sidebarLanding"
@@ -168,14 +197,15 @@
                         </ul>
                     </div>
                 </li>
+                @endcan
 
                 {{-- SETTINGS --}}
                 @php
-                    $isSettingsOpen =
-                        request()->routeIs('profile.*') ||
-                        request()->routeIs('admin.smtp.*') ||
-                        request()->routeIs('backend.admin.account.*') ||
-                        request()->routeIs('backend.admin.contact');
+                $isSettingsOpen =
+                request()->routeIs('profile.*') ||
+                request()->routeIs('admin.smtp.*') ||
+                request()->routeIs('backend.admin.account.*') ||
+                request()->routeIs('backend.admin.contact');
                 @endphp
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ $isSettingsOpen ? '' : 'collapsed' }}" href="#sidebarSettings"
@@ -185,30 +215,46 @@
                     </a>
                     <div class="collapse menu-dropdown {{ $isSettingsOpen ? 'show' : '' }}" id="sidebarSettings">
                         <ul class="nav nav-sm flex-column">
+                            @can('profile.view')
                             <li class="nav-item">
-                                <a href="{{ route('profile.edit') }}"
-                                    class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                                <a href="{{ route('profile.show') }}"
+                                    class="nav-link {{ request()->routeIs('profile.show') ? 'active' : '' }}">
                                     <i class="ri-user-line me-1"></i> Profile
                                 </a>
                             </li>
+                            @endcan
+                            @can('profile.edit')
+                            <li class="nav-item">
+                                <a href="{{ route('profile.edit') }}"
+                                    class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
+                                    <i class="ri-user-settings-line me-1"></i> Profile Settings
+                                </a>
+                            </li>
+                            @endcan
+                            @can('settings.smtp')
                             <li class="nav-item">
                                 <a href="{{ route('admin.smtp.index') }}"
                                     class="nav-link {{ request()->routeIs('smtp.*') ? 'active' : '' }}">
                                     <i class="ri-mail-line me-1"></i> SMTP
                                 </a>
                             </li>
+                            @endcan
 
+                            @can('settings.account')
                             <li class="nav-item">
                                 <a href="{{ route('backend.admin.account.edit') }}"
                                     class="nav-link {{ request()->routeIs('backend.admin.account.*') ? 'active' : '' }}">
                                     <i class="ri-shield-user-line me-1"></i> Account Setting
                                 </a>
                             </li>
+                            @endcan
+                            @can('cms.manage')
                             <li class="nav-item">
                                 <a href="{{ route('backend.admin.contact') }}" class="nav-link">
                                     <i class="mdi mdi-lifebuoy text-muted fs-16 align-middle me-1"></i> Contact Us
                                 </a>
                             </li>
+                            @endcan
                         </ul>
                     </div>
                 </li>

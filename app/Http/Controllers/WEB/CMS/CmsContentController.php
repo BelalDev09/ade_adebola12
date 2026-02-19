@@ -34,13 +34,24 @@ class CmsContentController extends Controller
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image_remove' => 'nullable|in:0,1',
             'btn_text' => 'nullable|string|max:100',
             'btn_link' => 'nullable|string',
             'order' => 'nullable|integer',
             'status' => 'required|boolean',
         ]);
 
+        $existing = $request->id ? CmsContent::find($request->id) : null;
+
+        if (($data['image_remove'] ?? '0') === '1' && $existing && $existing->image_path) {
+            Storage::disk('public')->delete($existing->image_path);
+            $data['image_path'] = null;
+        }
+
         if ($request->hasFile('image')) {
+            if ($existing && $existing->image_path) {
+                Storage::disk('public')->delete($existing->image_path);
+            }
             $data['image_path'] = $request->file('image')->store('cms', 'public');
         }
         $data['status'] = $request->has('status') ? 1 : 0;

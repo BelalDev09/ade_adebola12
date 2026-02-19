@@ -33,38 +33,26 @@
 
                         {{-- Logo & Favicon --}}
                         <div class="row mb-4">
-                            {{-- Logo --}}
-                            <div class="col-md-6 text-center mb-3">
-                                <label class="form-label fw-semibold d-block">Logo</label>
-                                <div class="position-relative d-inline-block border rounded p-2"
-                                    style="width:160px;height:160px;">
-                                    <img id="logoPreview"
-                                        src="{{ $settings && $settings->logo ? asset('storage/' . $settings->logo) : asset('backend/images/default-logo.png') }}"
-                                        style="width:150px;height:150px;object-fit:contain;" class="img-fluid rounded">
-                                    <button type="button" class="btn btn-sm btn-primary position-absolute top-0 end-0"
-                                        style="padding:2px 6px;"
-                                        onclick="document.getElementById('logo').click()">✏️</button>
-                                    <input type="file" name="logo" id="logo" class="d-none"
-                                        accept=".png,.jpg,.jpeg">
-                                </div>
-                                <small class="text-muted d-block mt-2">Only *.png, *.jpg, *.jpeg</small>
+                            <div class="col-md-6 mb-3">
+                                @include('backend.partials.form.image-input', [
+                                    'name' => 'logo',
+                                    'label' => 'Logo',
+                                    'value' => $settings && $settings->logo ? asset('storage/' . $settings->logo) : null,
+                                    'accept' => 'image/*',
+                                    'height' => 160,
+                                    'removeName' => 'logo_remove',
+                                ])
                             </div>
 
-                            {{-- Favicon --}}
-                            <div class="col-md-6 text-center mb-3">
-                                <label class="form-label fw-semibold d-block">Favicon</label>
-                                <div class="position-relative d-inline-block border rounded p-2"
-                                    style="width:160px;height:160px;">
-                                    <img id="faviconPreview"
-                                        src="{{ $settings && $settings->favicon ? asset('storage/' . $settings->favicon) : asset('backend/images/default-favicon.png') }}"
-                                        style="width:150px;height:150px;object-fit:contain;" class="img-fluid rounded">
-                                    <button type="button" class="btn btn-sm btn-primary position-absolute top-0 end-0"
-                                        style="padding:2px 6px;"
-                                        onclick="document.getElementById('favicon').click()">✏️</button>
-                                    <input type="file" name="favicon" id="favicon" class="d-none"
-                                        accept=".png,.jpg,.jpeg">
-                                </div>
-                                <small class="text-muted d-block mt-2">Only *.png, *.jpg, *.jpeg</small>
+                            <div class="col-md-6 mb-3">
+                                @include('backend.partials.form.image-input', [
+                                    'name' => 'favicon',
+                                    'label' => 'Favicon',
+                                    'value' => $settings && $settings->favicon ? asset('storage/' . $settings->favicon) : null,
+                                    'accept' => 'image/*',
+                                    'height' => 160,
+                                    'removeName' => 'favicon_remove',
+                                ])
                             </div>
                         </div>
 
@@ -79,42 +67,4 @@
             </div>
         </div>
     </section>
-@endsection
-
-@section('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            function showImagePreview(inputId, previewId) {
-                const input = document.getElementById(inputId);
-                const preview = document.getElementById(previewId);
-
-                input.addEventListener('change', function() {
-                    const file = this.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            preview.src = e.target.result;
-                        }
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
-
-            showImagePreview('logo', 'logoPreview');
-            showImagePreview('favicon', 'faviconPreview');
-
-            document.querySelectorAll('.btn-primary[onclick]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const targetInputId = this.getAttribute('onclick').match(/'(.+)'/)[1];
-                    document.getElementById(targetInputId).click();
-                });
-            });
-
-            document.getElementById('accountForm').addEventListener('submit', function(e) {
-
-            });
-
-        });
-    </script>
 @endsection

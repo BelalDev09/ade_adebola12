@@ -39,12 +39,15 @@
                                 <input type="url" id="btn_link" name="btn_link" class="form-control">
                             </div>
                             <div class="mb-3">
-                                <label>Image</label>
-                                <input type="file" id="imageInput" name="image" class="form-control"
-                                    onchange="previewImage(event)">
-                                <label class="mt-2">Preview</label><br>
-                                <img id="imagePreview" src="{{ asset('images/placeholder.png') }}" class="img-thumbnail"
-                                    style="max-height:120px">
+                                @include('backend.partials.form.image-input', [
+                                    'name' => 'image',
+                                    'label' => 'Image',
+                                    'value' => null,
+                                    'accept' => 'image/*',
+                                    'height' => 160,
+                                    'removeName' => 'image_remove',
+                                    'id' => 'marketImageInput',
+                                ])
                             </div>
                             <div class="mb-3">
                                 <label>Status</label>
@@ -125,15 +128,15 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Merket-Image</label> <br>
-                        <input type="file" onchange="previewImage(event, 'heroImagePreview')">
-
-
-                        <label class="form-label d-block mt-2">Preview</label>
-
-                        <img id="heroImagePreview" src="{{ asset('images/placeholder.png') }}" class="img-thumbnail"
-                            style="max-height:140px;object-fit:cover;">
-
+                        @include('backend.partials.form.image-input', [
+                            'name' => 'image',
+                            'label' => 'Market Image',
+                            'value' => null,
+                            'accept' => 'image/*',
+                            'height' => 180,
+                            'removeName' => 'image_remove',
+                            'id' => 'marketImageInputModal',
+                        ])
                     </div>
 
                 </div>
@@ -146,18 +149,6 @@
     </div>
 
     <script>
-        function previewImage(event, previewId = 'imagePreview') {
-            const input = event.target;
-            const preview = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => preview.src = e.target.result;
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                preview.src = "{{ asset('images/placeholder.png') }}";
-            }
-        }
-
         $(function() {
 
             const Toast = Swal.mixin({
@@ -245,6 +236,14 @@
                     formData.append('btn_text', $('#modalBtnText').val());
                     formData.append('btn_link', $('#modalBtnLink').val());
                     formData.append('status', $('#modalStatus').is(':checked') ? 1 : 0);
+                    const modalFile = $('#marketImageInputModal')[0].files[0];
+                    if (modalFile) {
+                        formData.append('image', modalFile);
+                    }
+                    formData.append(
+                        'image_remove',
+                        $('#marketToolModal [name="image_remove"]').val() || 0
+                    );
                 } else {
                     var form = $('#marketToolsForm')[0];
                     formData = new FormData(form);
@@ -266,7 +265,15 @@
                         if (isModal) $('#marketToolModal').modal('hide');
                         else {
                             $('#marketToolsForm')[0].reset();
-                            $('#imagePreview').attr('src', "{{ asset('images/placeholder.png') }}");
+                            $('#marketToolsForm [data-remove-flag]').val('0');
+                            const dr = $('#marketImageInput').data('dropify');
+                            if (dr) {
+                                dr.resetPreview();
+                                dr.clearElement();
+                                dr.settings.defaultFile = '';
+                                dr.destroy();
+                                dr.init();
+                            }
                             $('#formTitle').text('Add Market Tool');
                             $('#saveBtn').text('Save');
                         }
@@ -285,7 +292,15 @@
             // Reset form
             $('#resetBtn').click(function() {
                 $('#marketToolsForm')[0].reset();
-                $('#imagePreview').attr('src', "{{ asset('images/placeholder.png') }}");
+                $('#marketToolsForm [data-remove-flag]').val('0');
+                const dr = $('#marketImageInput').data('dropify');
+                if (dr) {
+                    dr.resetPreview();
+                    dr.clearElement();
+                    dr.settings.defaultFile = '';
+                    dr.destroy();
+                    dr.init();
+                }
                 $('#formTitle').text('Add Market Tool');
                 $('#saveBtn').text('Save');
             });
@@ -303,20 +318,26 @@
                     $('#modalBtnLink').val(data.btn_link);
                     $('#modalStatus').prop('checked', data.status == 1);
                     updateLabel($('#modalStatus'), $('#modalStatusLabel'));
-                    $('#heroImagePreview').attr(
-                        'src',
-                        data.image_path ? data.image_path :
-                        "{{ asset('images/placeholder.png') }}"
-                    );
+                    $('#marketToolModal [data-remove-flag]').val('0');
+                    const drModal = $('#marketImageInputModal').data('dropify');
+                    if (drModal) {
+                        drModal.resetPreview();
+                        drModal.clearElement();
+                        drModal.settings.defaultFile = data.image_path ? data.image_path : '';
+                        drModal.destroy();
+                        drModal.init();
+                    }
                     if (isView) {
                         $('#marketModalTitle').text('View Market Tool');
                         $('#modalTitle,#modalDescription,#modalBtnText,#modalBtnLink,#modalStatus')
                             .prop('disabled', true);
+                        $('#marketImageInputModal').prop('disabled', true);
                         $('#modalSaveBtn').hide();
                     } else {
                         $('#marketModalTitle').text('Edit Market Tool');
                         $('#modalTitle,#modalDescription,#modalBtnText,#modalBtnLink,#modalStatus')
                             .prop('disabled', false);
+                        $('#marketImageInputModal').prop('disabled', false);
                         $('#modalSaveBtn').show();
                     }
 

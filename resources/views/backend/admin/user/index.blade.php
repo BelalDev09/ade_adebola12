@@ -1,211 +1,188 @@
 @extends('backend.app')
 
 @section('content')
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between mb-3">
-            <h4>Users List</h4>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal" data-action="add">
-                Add User
-            </button>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <table id="usersTable" class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Created</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-        </div>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Users List</h4>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal" data-action="add">
+            Add User
+        </button>
     </div>
 
-    {{-- Modal --}}
-    <div class="modal fade" id="userModal">
-        <div class="modal-dialog modal-dialog-centered">
-            <form id="userForm" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 id="userModalLabel">Add User</h5>
-                        <button class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table id="usersTable" class="table table-hover table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Permissions</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-                    <div class="modal-body">
-                        <div class="text-center mb-3">
-                            <img id="preview" src="https://ui-avatars.com/api/?name=User" class="rounded-circle"
-                                width="100">
-                            <input type="file" name="avatar" id="avatarInput" class="form-control mt-2">
+{{-- Modal --}}
+<div class="modal fade" id="userModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <form id="userForm" enctype="multipart/form-data">
+            @csrf
+            <input type="hidden" name="user_id" id="userId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="userModalLabel">Add User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <input type="text" name="first_name" id="firstName" class="form-control" placeholder="First name">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="last_name" id="lastName" class="form-control" placeholder="Last name">
+                        </div>
+                        <div class="col-12">
+                            <input type="email" name="email" id="email" class="form-control" placeholder="Email">
                         </div>
 
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <input class="form-control" name="first_name" id="firstName" placeholder="First name">
-                            </div>
-                            <div class="col-md-6">
-                                <input class="form-control" name="last_name" id="lastName" placeholder="Last name">
-                            </div>
-                            <div class="col-12">
-                                <input class="form-control" name="email" id="email" placeholder="Email">
-                            </div>
+                        {{-- Roles --}}
+                        <div class="col-12">
+                            <label>Roles</label>
+                            <select name="roles[]" id="rolesSelect" class="form-select" multiple>
+                                @foreach ($roles as $role)
+                                    <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                            <div class="col-12 password-field">
-                                <div class="input-group">
-                                    <input type="password" name="password" id="password" class="form-control"
-                                        placeholder="Password">
-                                    <span class="input-group-text" id="togglePassword" style="cursor:pointer">
-                                        <i class="bi bi-eye"></i>
-                                    </span>
-                                </div>
+                        {{-- Password --}}
+                        <div class="col-12 password-field">
+                            <div class="input-group">
+                                <input type="password" name="password" id="password" class="form-control" placeholder="Password">
+                                <span class="input-group-text" id="togglePassword" style="cursor:pointer">
+                                    <i class="bi bi-eye"></i>
+                                </span>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button class="btn btn-primary" type="submit">Save</button>
                     </div>
                 </div>
-            </form>
-        </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+            </div>
+        </form>
     </div>
+</div>
 @endsection
 
 @push('scripts')
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-    <script>
-        $(function() {
+<script>
+$(function() {
+    let table = $('#usersTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('admin.users.index') }}",
+        columns: [
+            {data: 'DT_RowIndex', orderable: false, searchable: false},
+            {data: 'email'},
+            {
+                data: 'roles',
+                render: function(data) {
+                    return data.map(role => `<span class="badge bg-warning text-dark me-1">${role}</span>`).join(' ');
+                },
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'permissions',
+                render: function(data) {
+                    return data.map(p => `<span class="badge bg-primary me-1">${p}</span>`).join(' ');
+                },
+                orderable: false,
+                searchable: false
+            },
+            {data: 'action', orderable: false, searchable: false, className: 'text-center'}
+        ]
+    });
 
-            let table = $('#usersTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: "{{ route('admin.users.index') }}",
-                columns: [{
-                        data: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'name'
-                    },
-                    {
-                        data: 'email'
-                    },
-                    {
-                        data: 'created_at'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
-                ]
-            });
+    // Password toggle
+    $(document).on('click', '#togglePassword', function() {
+        let input = $('#password');
+        let icon = $(this).find('i');
+        input.attr('type', input.attr('type') === 'password' ? 'text' : 'password');
+        icon.toggleClass('bi-eye bi-eye-slash');
+    });
 
-            // Avatar preview
-            $('#avatarInput').change(function() {
-                if (this.files[0]) {
-                    $('#preview').attr('src', URL.createObjectURL(this.files[0]));
-                }
-            });
+    // Open modal for edit
+    $('#userModal').on('show.bs.modal', function(e) {
+        let button = $(e.relatedTarget);
+        let action = button.data('action');
 
-            // Password eye toggle
-            $(document).on('click', '#togglePassword', function() {
-                let input = $('#password');
-                let icon = $(this).find('i');
+        if(action === 'edit') {
+            $('#userModalLabel').text('Edit User');
+            $('#userId').val(button.data('id'));
+            $('#firstName').val(button.data('first_name'));
+            $('#lastName').val(button.data('last_name'));
+            $('#email').val(button.data('email'));
+            let roles = button.data('roles') ? JSON.parse(button.data('roles')) : [];
+            $('#rolesSelect').val(roles).trigger('change');
+        } else {
+            $('#userModalLabel').text('Add User');
+            $('#userForm')[0].reset();
+            $('#rolesSelect').val([]).trigger('change');
+            $('#userId').val('');
+        }
+    });
 
-                if (input.attr('type') === 'password') {
-                    input.attr('type', 'text');
-                    icon.removeClass('bi-eye').addClass('bi-eye-slash');
-                } else {
-                    input.attr('type', 'password');
-                    icon.removeClass('bi-eye-slash').addClass('bi-eye');
-                }
-            });
+    // Submit form via Ajax
+    $('#userForm').submit(function(e){
+        e.preventDefault();
+        let id = $('#userId').val();
+        let url = id ? "{{ url('admin/users') }}/" + id : "{{ route('admin.users.store') }}";
+        let method = id ? 'PUT' : 'POST';
 
-            // Modal open
-            $('#userModal').on('show.bs.modal', function(e) {
-                let btn = $(e.relatedTarget);
-                let action = btn.data('action');
-                let form = $('#userForm');
-
-                form.trigger('reset');
-                $('.password-field').show();
-                form.find('input[name=_method]').remove();
-
-                if (action === 'add') {
-                    $('#userModalLabel').text('Add User');
-                    form.attr('action', "{{ route('admin.users.store') }}");
-                }
-
-                if (action === 'edit') {
-                    $('#userModalLabel').text('Edit User');
-                    form.attr('action', "{{ route('admin.users.update', ':id') }}".replace(':id', btn.data(
-                        'id')));
-                    form.append('<input type="hidden" name="_method" value="PUT">');
-                    $('#firstName').val(btn.data('first_name'));
-                    $('#lastName').val(btn.data('last_name'));
-                    $('#email').val(btn.data('email'));
-                    $('.password-field');
-
-                    let avatar = btn.data('avatar') || 'https://ui-avatars.com/api/?name=User';
-                    $('#preview').attr('src', avatar);
-                }
-            });
-
-            // Submit
-            $('#userForm').submit(function(e) {
-                e.preventDefault();
-                let formData = new FormData(this);
-
-                $.ajax({
-                    url: this.action,
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: res => {
-                        $('#userModal').modal('hide');
-                        table.ajax.reload(null, false);
-                        Swal.fire('Success', res.success, 'success');
-                    }
-                });
-            });
-
-            // Delete
-            $(document).on('click', '.delete-user', function() {
-                let id = $(this).data('id');
-
-                Swal.fire({
-                        title: 'Delete user?',
-                        icon: 'warning',
-                        showCancelButton: true
-                    })
-                    .then(r => {
-                        if (r.isConfirmed) {
-                            $.ajax({
-                                url: "{{ route('admin.users.destroy', ':id') }}".replace(':id',
-                                    id),
-                                type: 'DELETE',
-                                data: {
-                                    _token: "{{ csrf_token() }}"
-                                },
-                                success: () => {
-                                    table.ajax.reload(null, false);
-                                    Swal.fire('Deleted', 'User removed', 'success');
-                                }
-                            });
-                        }
-                    });
-            });
-
+        $.ajax({
+            url: url,
+            method: method,
+            data: new FormData(this),
+            contentType: false,
+            processData: false,
+            success: function(res){
+                $('#userModal').modal('hide');
+                table.ajax.reload();
+                alert(res.success);
+            },
+            error: function(err){
+                console.log(err);
+                alert('Something went wrong!');
+            }
         });
-    </script>
+    });
+
+    // Delete user
+    $(document).on('click', '.delete-user', function(){
+        if(!confirm('Are you sure?')) return;
+        let id = $(this).data('id');
+
+        $.ajax({
+            url: "{{ url('admin/users') }}/" + id,
+            method: 'DELETE',
+            data: {_token: "{{ csrf_token() }}"},
+            success: function(res){
+                table.ajax.reload();
+                alert(res.success);
+            }
+        });
+    });
+});
+</script>
 @endpush

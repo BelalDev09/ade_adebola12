@@ -44,17 +44,22 @@ class MarketToolsController extends Controller
             'btn_text' => 'nullable|string|max:100',
             'btn_link' => 'nullable|url',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'status' => 'nullable|boolean'
+            'status' => 'nullable|boolean',
+            'image_remove' => 'nullable|in:0,1',
         ]);
 
         // Handle Image
+        $old = $request->id ? CmsContent::find($request->id) : null;
+
+        if (($data['image_remove'] ?? '0') === '1' && $old && $old->image_path) {
+            Storage::disk('public')->delete($old->image_path);
+            $data['image_path'] = null;
+        }
+
         if ($request->hasFile('image')) {
             // Delete old image if exists
-            if ($request->id) {
-                $old = CmsContent::find($request->id);
-                if ($old && $old->image_path) {
-                    Storage::disk('public')->delete($old->image_path);
-                }
+            if ($old && $old->image_path) {
+                Storage::disk('public')->delete($old->image_path);
             }
             $data['image_path'] = $request->file('image')->store('cms', 'public');
         }

@@ -29,12 +29,15 @@
                                 <textarea id="description" name="description" class="form-control"></textarea>
                             </div>
                             <div class="mb-3">
-                                <label>Image</label>
-                                <input type="file" id="imageInput" name="image" class="form-control"
-                                    onchange="previewImage(event)">
-                                <label class="mt-2">Preview</label><br>
-                                <img id="imagePreview" src="{{ asset('images/placeholder.png') }}" class="img-thumbnail"
-                                    style="max-height:120px">
+                                @include('backend.partials.form.image-input', [
+                                    'name' => 'image',
+                                    'label' => 'Image',
+                                    'value' => null,
+                                    'accept' => 'image/*',
+                                    'height' => 160,
+                                    'removeName' => 'image_remove',
+                                    'id' => 'howImageInput',
+                                ])
                             </div>
                             <div class="mb-3">
                                 <label>Status</label>
@@ -104,26 +107,16 @@
                             <span class="ms-2 fw-bold" id="modalStatusLabel"></span>
                         </div>
                     </div>
-                    <div class="mb-3 position-relative" style="max-width:200px;">
-                        <label class="form-label d-block">Image Preview</label>
-
-                        <img id="modalImagePreview" src="{{ asset('images/placeholder.png') }}" class="img-thumbnail w-100"
-                            style="object-fit:cover">
-
-                        <button type="button" id="deleteImageBtn"
-                            class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
-                            style="width:26px;height:26px;z-index:10"
-                            data-url="{{ route('cms.how-it-works.image-delete', ['id' => 0]) }}">
-                            &times;
-                        </button>
-                    </div>
-
                     <div class="mb-3" id="modalImageInputWrapper">
-                        <label class="form-label btn btn-outline-primary d-inline-flex align-items-center">
-                            <i class="bi bi-upload me-2"></i> Choose Image
-                            <input type="file" class="d-none" id="modalImage" name="image"
-                                onchange="previewImage(event,'modalImagePreview')">
-                        </label>
+                        @include('backend.partials.form.image-input', [
+                            'name' => 'image',
+                            'label' => 'Image',
+                            'value' => null,
+                            'accept' => 'image/*',
+                            'height' => 180,
+                            'removeName' => 'image_remove',
+                            'id' => 'modalImage',
+                        ])
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -137,16 +130,6 @@
 
 @push('scripts')
     <script>
-        function previewImage(event, previewId = 'imagePreview') {
-            const input = event.target;
-            const preview = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => preview.src = e.target.result;
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
         $(function() {
 
             const Toast = Swal.mixin({
@@ -222,6 +205,10 @@
                     formData.append('status', $('#modalStatus').is(':checked') ? 1 : 0);
                     let modalImage = $('#modalImage')[0].files[0];
                     if (modalImage) formData.append('image', modalImage);
+                    formData.append(
+                        'image_remove',
+                        $('#howItWorksModal [name="image_remove"]').val() || 0
+                    );
                 } else {
                     formData = new FormData($('#howItWorksForm')[0]);
                     formData.set('status', $('#status').is(':checked') ? 1 : 0);
@@ -244,7 +231,15 @@
                             $('#howItWorksModal').modal('hide');
                         } else {
                             $('#howItWorksForm')[0].reset();
-                            $('#imagePreview').attr('src', "{{ asset('images/placeholder.png') }}");
+                            $('#howItWorksForm [data-remove-flag]').val('0');
+                            const dr = $('#howImageInput').data('dropify');
+                            if (dr) {
+                                dr.resetPreview();
+                                dr.clearElement();
+                                dr.settings.defaultFile = '';
+                                dr.destroy();
+                                dr.init();
+                            }
                             $('#formTitle').text('Add How It Works Step');
                             $('#saveBtn').text('Save');
                         }
@@ -263,7 +258,15 @@
 
             $('#resetBtn').click(function() {
                 $('#howItWorksForm')[0].reset();
-                $('#imagePreview').attr('src', "{{ asset('images/placeholder.png') }}");
+                $('#howItWorksForm [data-remove-flag]').val('0');
+                const dr = $('#howImageInput').data('dropify');
+                if (dr) {
+                    dr.resetPreview();
+                    dr.clearElement();
+                    dr.settings.defaultFile = '';
+                    dr.destroy();
+                    dr.init();
+                }
                 $('#formTitle').text('Add How It Works Step');
                 $('#saveBtn').text('Save');
             });
@@ -281,85 +284,30 @@
                     $('#modalDescription').val(data.description);
                     $('#modalStatus').prop('checked', data.status == 1);
                     updateLabel($('#modalStatus'), $('#modalStatusLabel'));
-
-                    $('#modalImagePreview').attr(
-                        'src',
-                        data.image_path ? data.image_path :
-                        "{{ asset('images/placeholder.png') }}"
-                    );
+                    $('#howItWorksModal [data-remove-flag]').val('0');
+                    const drModal = $('#modalImage').data('dropify');
+                    if (drModal) {
+                        drModal.resetPreview();
+                        drModal.clearElement();
+                        drModal.settings.defaultFile = data.image_path ? data.image_path : '';
+                        drModal.destroy();
+                        drModal.init();
+                    }
 
                     if (isView) {
                         $('#modalTitleText').text('View How It Works');
                         $('#modalTitle,#modalDescription,#modalStatus').prop('disabled', true);
                         $('#modalImageInputWrapper').hide();
                         $('#modalSaveBtn').hide();
-                        $('#deleteImageBtn').hide();
 
                     } else {
                         $('#modalTitleText').text('Edit How It Works');
                         $('#modalTitle,#modalDescription,#modalStatus').prop('disabled', false);
                         $('#modalImageInputWrapper').show();
-                        $('#deleteImageBtn').show();
                         $('#modalSaveBtn').show();
                     }
 
                     $('#howItWorksModal').modal('show');
-                });
-            });
-
-            $('#modalImage').on('change', function(e) {
-                previewImage(e, 'modalImagePreview');
-            });
-
-            // Delete image
-            $('#deleteImageBtn').on('click', function() {
-
-                let imgSrc = $('#modalImagePreview').attr('src');
-
-                if (imgSrc.includes('placeholder.png')) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'No image to delete',
-                        toast: true,
-                        position: 'top-end',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    return;
-                }
-
-                let id = $('#modalHowId').val();
-                if (!id) return;
-
-                Swal.fire({
-                    title: 'Remove image?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, remove'
-                }).then((result) => {
-
-                    if (!result.isConfirmed) return;
-
-                    let url = $(this).data('url').replace('/0', '/' + id);
-
-                    $.post(url, {
-                        _token: "{{ csrf_token() }}"
-                    }, function(res) {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: res.success,
-                            toast: true,
-                            position: 'top-end',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-
-                        $('#modalImagePreview')
-                            .attr('src', "{{ asset('images/placeholder.png') }}");
-
-                        $('#modalImage').val('');
-                    });
                 });
             });
 

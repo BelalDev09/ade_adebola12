@@ -11,6 +11,19 @@ use Illuminate\Validation\ValidationException;
 class PersonController extends Controller
 {
     /**
+     * Show the user's profile (view-only).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function show(Request $request)
+    {
+        return view('backend.pages.profile', [
+            'user' => $request->user()
+        ]);
+    }
+
+    /**
      * Show the user's profile edit form.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -47,6 +60,8 @@ class PersonController extends Controller
             'skills'      => 'nullable|string',
             'avatar'      => 'nullable|image|max:2048',
             'cover_image' => 'nullable|image|max:4096',
+            'avatar_remove' => 'nullable|in:0,1',
+            'cover_image_remove' => 'nullable|in:0,1',
         ]);
 
         // Fill profile base fields
@@ -72,6 +87,12 @@ class PersonController extends Controller
         }
 
         // Handle avatar upload
+        if (($validated['avatar_remove'] ?? '0') === '1') {
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = null;
+        }
         if ($request->hasFile('avatar')) {
             if ($user->avatar) {
                 Storage::disk('public')->delete($user->avatar);
@@ -80,6 +101,12 @@ class PersonController extends Controller
         }
 
         // Handle cover_image upload
+        if (($validated['cover_image_remove'] ?? '0') === '1') {
+            if ($user->cover_image) {
+                Storage::disk('public')->delete($user->cover_image);
+            }
+            $user->cover_image = null;
+        }
         if ($request->hasFile('cover_image')) {
             if ($user->cover_image) {
                 Storage::disk('public')->delete($user->cover_image);

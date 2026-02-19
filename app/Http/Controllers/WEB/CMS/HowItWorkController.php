@@ -41,14 +41,19 @@ class HowItWorkController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'nullable|boolean',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120'
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'image_remove' => 'nullable|in:0,1',
         ]);
 
+        $old = $request->id ? CmsContent::find($request->id) : null;
+
+        if (($data['image_remove'] ?? '0') === '1' && $old && $old->image_path) {
+            Storage::disk('public')->delete($old->image_path);
+            $data['image_path'] = null;
+        }
+
         if ($request->hasFile('image')) {
-            if ($request->id) {
-                $old = CmsContent::find($request->id);
-                if ($old && $old->image_path) Storage::disk('public')->delete($old->image_path);
-            }
+            if ($old && $old->image_path) Storage::disk('public')->delete($old->image_path);
             $data['image_path'] = $request->file('image')->store('cms', 'public');
         }
 

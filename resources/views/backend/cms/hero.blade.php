@@ -36,14 +36,15 @@
                         class="form-control" placeholder="https://example.com">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Hero Image</label>
-                    <input type="file" name="image" class="form-control" id="heroImageInput"
-                        onchange="previewHeroImage(event)">
-
-                    <label class="form-label d-block mt-2">Preview</label>
-                    <img id="heroImagePreview"
-                        src="{{ isset($cms) && $cms->image_path ? asset('storage/' . $cms->image_path) : asset('images/placeholder.png') }}"
-                        class="img-thumbnail" style="max-height: 140px; object-fit: cover;">
+                    @include('backend.partials.form.image-input', [
+                        'name' => 'image',
+                        'label' => 'Hero Image',
+                        'value' => isset($cms) && $cms->image_path ? asset('storage/' . $cms->image_path) : null,
+                        'accept' => 'image/*',
+                        'height' => 180,
+                        'removeName' => 'image_remove',
+                        'id' => 'heroImageInput',
+                    ])
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Status</label><br>
@@ -63,26 +64,9 @@
     </div>
 
     @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <script>
-            // Image preview
-            function previewHeroImage(event) {
-                const input = event.target;
-                const preview = document.getElementById('heroImagePreview');
-
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        preview.src = e.target.result;
-                    }
-                    reader.readAsDataURL(input.files[0]);
-                } else {
-                    preview.src = "{{ asset('images/placeholder.png') }}";
-                }
-            }
-
             // Status label update
             document.addEventListener('DOMContentLoaded', function() {
                 const checkbox = document.getElementById('status');
@@ -123,13 +107,6 @@
                                 showConfirmButton: false
                             });
 
-                            // Reset form
-                            form.trigger('reset');
-                            // Reset image
-                            $('#heroImagePreview').attr('src',
-                                "{{ asset('images/placeholder.png') }}");
-                            // Reset status
-                            $('#status').prop('checked', true).trigger('change');
                         },
                         error: function(xhr) {
                             Swal.fire({

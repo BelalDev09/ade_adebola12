@@ -38,6 +38,7 @@ class HeroSectionController extends Controller
             'btn_text'    => 'nullable|string|max:100',
             'btn_link'    => 'nullable|url|max:255',
             'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'image_remove' => 'nullable|in:0,1',
             'status'      => 'nullable|boolean',
         ]);
 
@@ -50,14 +51,18 @@ class HeroSectionController extends Controller
             $data['btn_link'] = null;
         }
 
+        $existing = CmsContent::where([
+            'page_slug' => 'landing-page',
+            'section'   => 'hero',
+        ])->first();
+
+        if (($validated['image_remove'] ?? '0') === '1' && $existing && $existing->image_path) {
+            Storage::disk('public')->delete($existing->image_path);
+            $data['image_path'] = null;
+        }
+
         // Handle image
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
-
-            $existing = CmsContent::where([
-                'page_slug' => 'landing-page',
-                'section'   => 'hero',
-            ])->first();
-
             // Delete old image
             if ($existing && $existing->image_path) {
                 Storage::disk('public')->delete($existing->image_path);
@@ -66,12 +71,6 @@ class HeroSectionController extends Controller
             // Store new image
             $data['image_path'] = $request->file('image')
                 ->store('cms/hero', 'public');
-        }
-
-
-        if ($request->boolean('delete_image') && isset($existing) && $existing->image_path) {
-            Storage::disk('public')->delete($existing->image_path);
-            $data['image_path'] = null;
         }
 
         // Save
