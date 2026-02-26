@@ -8,7 +8,7 @@
             @csrf
             <div class="mb-3">
                 <label>Description</label>
-                <textarea name="description" id="description" class="form-control" rows="5" required></textarea>
+                <textarea name="description" id="description" class="form-control" rows="5"></textarea>
             </div>
             <button class="btn btn-primary" type="submit">Save</button>
             <a href="{{ route('admin.support.index') }}" class="btn btn-secondary">Cancel</a>

@@ -98,11 +98,14 @@ class RoleController extends Controller
             'permissions.*' => 'integer|exists:permissions,id',
         ]);
 
-        $role->syncPermissions($request->input('permissions', []));
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $permissions = Permission::whereIn('id', $request->permissions ?? [])->get();
+
+        $role->syncPermissions($permissions);
+
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
         return redirect()
-            ->route('admin.roles.permissions', $role)
+            ->route('admin.roles.index', $role)
             ->with('success', 'Permissions updated successfully');
     }
 
