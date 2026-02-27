@@ -3,16 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Sale extends Model
+class VendorProfile extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
-        'property_type',
-        'location',
-        'property_size',
-        'number_of_bedrooms'
+        'shop_name',
+        'logo',
+        'address',
+        'status',
     ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

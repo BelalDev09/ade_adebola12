@@ -2,18 +2,35 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\Setting;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\ServiceProvider;
+use App\Models\User;
+use App\Policies\CategoryPolicy;
+use App\Policies\ProductPolicy;
+use App\Policies\RolePolicy;
+use App\Policies\UserPolicy;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
+use Laravel\Socialite\Facades\Socialite;
+use SocialiteProviders\Apple\Provider as AppleProvider;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
      */
+    protected $policies = [
+        User::class => UserPolicy::class,
+        Role::class => RolePolicy::class,
+        Product::class => ProductPolicy::class,
+        Category::class => CategoryPolicy::class,
+    ];
     public function register(): void
     {
         //
@@ -40,6 +57,24 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrap();
         View::composer('backend.partials.footer', function ($view) {
             $view->with('settings', Setting::first());
+        });
+        // superadmin
+        Gate::before(function ($user, $ability) {
+            if ($user->hasRole('superadmin')) {
+                return true; // (web + api)
+            }
+        });
+
+        //socialite login
+        Socialite::extend('apple', static function ($app) {
+            $config = $app['config']['services.apple'];
+
+            return new AppleProvider(
+                $app['request'],
+                $config['client_id'],
+                $config['client_secret'],
+                $config['redirect']
+            );
         });
     }
 }

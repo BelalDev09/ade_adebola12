@@ -27,6 +27,10 @@ return new class extends Migration
             $table->json('skills')->nullable();       // ["Photoshop", "HTML", "CSS"]
             $table->json('portfolio')->nullable();    // [{"name": "GitHub", "url": "..."}, ...]
             $table->date('joining_date')->nullable();
+            $table->string('status')->default('active');
+            $table->integer('visits')->default(0);
+            $table->string('provider')->nullable();
+            $table->string('provider_id')->nullable();
         });
     }
 

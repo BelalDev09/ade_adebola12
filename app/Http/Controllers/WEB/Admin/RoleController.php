@@ -1,164 +1,190 @@
 <?php
 
-namespace App\Http\Controllers\WEB\Admin;
+namespace App\Http\Controllers\WEB;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
+
+use Illuminate\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
 
 class RoleController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    function __construct()
     {
-        if ($request->ajax()) {
-            $users = User::with(['roles'])->orderBy('email');
+        $this->middleware('permission:role-list|role-create|role-edit|role-delete', ['only' => ['index', 'store']]);
+        $this->middleware('permission:role-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:role-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:role-delete', ['only' => ['destroy']]);
+    }
 
-            return DataTables::of($users)
-                ->addColumn('roles', function ($user) {
-                    return $user->roles
-                        ->map(fn($role) => [
-                            'id' => $role->id,
-                            'name' => $role->name,
-                        ])
-                        ->values()
-                        ->all();
-                })
-                ->addColumn('permissions', function ($user) {
-                    return $user->getAllPermissions()->pluck('name')->toArray();
-                })
-                ->addColumn('email', fn($user) => $user->email)
-                ->addColumn('id', fn($user) => $user->id)
-                ->addColumn('first_role_id', fn($user) => optional($user->roles->first())->id)
-                ->make(true);
-        }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function data()
+    {
+        $roles = Role::select(['id', 'name', 'guard_name']);
 
+        return DataTables::of($roles)
+            ->addIndexColumn()
+            ->addColumn('action', function ($role) {
+                $btn = '';
+
+                $btn .= '<a href="' . route('backend.admin.roles.show', $role->id) . '"
+                         class="btn btn-info btn-sm me-1">
+                            <i class="fa-solid fa-list"></i> Show
+                         </a>';
+
+                if (auth()->user()->can('role-edit')) {
+                    $btn .= '<a href="' . route('backend.admin.roles.edit', $role->id) . '"
+                             class="btn btn-primary btn-sm me-1">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                             </a>';
+                }
+
+                if (auth()->user()->can('role-delete')) {
+                    $btn .= '<form action="' . route('backend.admin.roles.destroy', $role->id) . '" method="POST" style="display:inline;">
+                                ' . csrf_field() . '
+                                ' . method_field('DELETE') . '
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm(\'Are you sure to delete this role?\')">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                             </form>';
+                }
+
+                return $btn;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    public function index(): View
+    {
         return view('backend.admin.roles.index');
     }
 
-    public function create()
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create(): View
     {
-        return view('backend.admin.roles.create');
+        $permission = Permission::get();
+        return view('backend.admin.roles.create', compact('permission'));
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:150|unique:roles,name',
+        $this->validate($request, [
+            'name' => 'required|unique:roles,name',
+            'permission' => 'required',
         ]);
 
-        Role::create(['name' => $request->name]);
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $permissionsID = array_map(
+            function ($value) {
+                return (int)$value;
+            },
+            $request->input('permission')
+        );
 
-        return redirect()
-            ->route('admin.roles.index')
+        $role = Role::create(['name' => $request->input('name')]);
+        $role->syncPermissions($permissionsID);
+
+        return redirect()->route('backend.admin.roles.index')
             ->with('success', 'Role created successfully');
     }
-
-    public function edit(Role $role)
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id): View
     {
-        return view('backend.admin.roles.create', compact('role'));
+        $role = Role::find($id);
+        $rolePermissions = Permission::join("role_has_permissions", "role_has_permissions.permission_id", "=", "permissions.id")
+            ->where("role_has_permissions.role_id", $id)
+            ->get();
+
+        return view('backend.admin.roles.show', compact('role', 'rolePermissions'));
     }
 
-    public function update(Request $request, Role $role)
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id): View
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:150', Rule::unique('roles', 'name')->ignore($role->id)],
+        $role = Role::find($id);
+        $permission = Permission::get();
+        $rolePermissions = DB::table("role_has_permissions")->where("role_has_permissions.role_id", $id)
+            ->pluck('role_has_permissions.permission_id', 'role_has_permissions.permission_id')
+            ->all();
+
+        return view('backend.admin.roles.edit', compact('role', 'permission', 'rolePermissions'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id): RedirectResponse
+    {
+        $this->validate($request, [
+            'name' => 'required',
+            'permission' => 'required',
         ]);
 
-        $role->update(['name' => $request->name]);
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $role = Role::find($id);
+        $role->name = $request->input('name');
+        $role->save();
 
-        return redirect()
-            ->route('admin.roles.index')
+        $permissionsID = array_map(
+            function ($value) {
+                return (int)$value;
+            },
+            $request->input('permission')
+        );
+
+        $role->syncPermissions($permissionsID);
+
+        return redirect()->route('backend.admin.roles.index')
             ->with('success', 'Role updated successfully');
     }
-
-    public function permissions(Role $role)
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id): RedirectResponse
     {
-        $permissions = Permission::orderBy('name')->get();
-        $permissionGroups = $permissions->groupBy(function ($permission) {
-            return str_contains($permission->name, '.')
-                ? explode('.', $permission->name, 2)[0]
-                : 'general';
-        });
-        $assigned = $role->permissions->pluck('id')->all();
-
-        return view('backend.admin.roles.add_permissions', compact('role', 'permissionGroups', 'assigned'));
-    }
-
-    public function updatePermissions(Request $request, Role $role)
-    {
-        $request->validate([
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'integer|exists:permissions,id',
-        ]);
-
-        $permissions = Permission::whereIn('id', $request->permissions ?? [])->get();
-
-        $role->syncPermissions($permissions);
-
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-
-        return redirect()
-            ->route('admin.roles.index', $role)
-            ->with('success', 'Permissions updated successfully');
-    }
-
-    public function destroy(Request $request, Role $role)
-    {
-        if ($role->name === 'superadmin') {
-            return response()->json(['message' => 'Superadmin role cannot be deleted.'], 422);
-        }
-
-        if ($role->users()->count() > 0) {
-            return response()->json(['message' => 'Role is assigned to users. Remove it from users first or use force delete.'], 422);
-        }
-
-        $role->delete();
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-        return response()->json(['success' => 'Role deleted successfully']);
-    }
-
-    public function forceDestroy(Role $role)
-    {
-        if ($role->name === 'superadmin') {
-            return response()->json(['message' => 'Superadmin role cannot be deleted.'], 422);
-        }
-
-        $role->users()->detach();
-        $role->delete();
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-        return response()->json(['success' => 'Role removed from users and deleted successfully']);
-    }
-
-    public function assignUserRole(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-            'role' => 'required|string|exists:roles,name',
-        ]);
-
-        $user = User::where('email', $request->string('email'))->firstOrFail();
-        $user->syncRoles([$request->string('role')->toString()]);
-
-        return response()->json(['success' => 'Role assigned successfully']);
-    }
-
-    public function removeUserRole(User $user, Role $role)
-    {
-        if (! $user->hasRole($role->name)) {
-            return response()->json(['message' => 'User does not have this role.'], 422);
-        }
-
-        $user->removeRole($role->name);
-
-        return response()->json(['success' => 'Role removed successfully']);
+        DB::table("roles")->where('id', $id)->delete();
+        return redirect()->route('backend.admin.roles.index')
+            ->with('success', 'Role deleted successfully');
     }
 }

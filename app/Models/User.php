@@ -30,6 +30,8 @@ class User extends Authenticatable implements JWTSubject
         'skills',
         'status',
         'visits',
+        'provider',
+        'provider_id',
     ];
 
     protected $hidden = [
@@ -60,6 +62,11 @@ class User extends Authenticatable implements JWTSubject
     public function getFullNameAttribute(): string
     {
         return trim($this->first_name . ' ' . $this->last_name);
+    }
+    // Vendor's products
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'vendor_id');
     }
 }
 

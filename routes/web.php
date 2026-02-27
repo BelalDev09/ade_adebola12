@@ -1,27 +1,28 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WEB\Admin\AccountSettingController;
+use App\Http\Controllers\WEB\Admin\DashboardController;
+use App\Http\Controllers\WEB\Admin\PermissionController;
+use App\Http\Controllers\WEB\Admin\ReviewController;
+use App\Http\Controllers\WEB\Admin\ReviewReportController;
+use App\Http\Controllers\WEB\Admin\SmtpController;
+use App\Http\Controllers\WEB\Admin\SupportController;
+use App\Http\Controllers\WEB\Admin\UserController;
+use App\Http\Controllers\WEB\Backend\CategoryController;
+use App\Http\Controllers\WEB\CMS\CmsContentController;
+use App\Http\Controllers\WEB\CMS\HeroSectionController;
+use App\Http\Controllers\WEB\CMS\HowItWorkController;
+use App\Http\Controllers\WEB\CMS\MarketToolsController;
+use App\Http\Controllers\WEB\CMS\TestimonialsController;
+use App\Http\Controllers\WEB\CMS\WhoForController;
+use App\Http\Controllers\WEB\ContactController;
+use App\Http\Controllers\WEB\NotificationController;
+use App\Http\Controllers\WEB\PersonController;
+use App\Http\Controllers\WEB\RoleController;
 use App\Models\Review;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WEB\PersonController;
-use App\Http\Controllers\WEB\ContactController;
-use App\Http\Controllers\WEB\Admin\RoleController;
-use App\Http\Controllers\WEB\Admin\SmtpController;
-use App\Http\Controllers\WEB\Admin\UserController;
-use App\Http\Controllers\WEB\CMS\WhoForController;
-use App\Http\Controllers\WEB\Admin\ReviewController;
-use App\Http\Controllers\WEB\NotificationController;
-use App\Http\Controllers\WEB\Admin\SupportController;
-use App\Http\Controllers\WEB\CMS\HowItWorkController;
-use App\Http\Controllers\WEB\CMS\CmsContentController;
-use App\Http\Controllers\WEB\Admin\DashboardController;
-use App\Http\Controllers\WEB\CMS\HeroSectionController;
-use App\Http\Controllers\WEB\CMS\MarketToolsController;
-use App\Http\Controllers\WEB\Admin\PermissionController;
-use App\Http\Controllers\WEB\CMS\TestimonialsController;
-use App\Http\Controllers\WEB\Admin\ReviewReportController;
-use App\Http\Controllers\WEB\Admin\AccountSettingController;
 
 //test
 Route::get('/test-gate', function () {
@@ -86,47 +87,28 @@ Route::middleware('auth')->group(function () {
             ->name('users.roles.destroy');
 
         // Roles
-        Route::get('roles', [RoleController::class, 'index'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.index');
-        Route::get('roles/create', [RoleController::class, 'create'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.create');
-        Route::post('roles', [RoleController::class, 'store'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.store');
-        Route::get('roles/{role}/edit', [RoleController::class, 'edit'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.edit');
-        Route::put('roles/{role}', [RoleController::class, 'update'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.update');
-        Route::get('roles/{role}/permissions', [RoleController::class, 'permissions'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.permissions');
-        Route::put('roles/{role}/permissions', [RoleController::class, 'updatePermissions'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.permissions.update');
-        Route::delete('roles/{role}', [RoleController::class, 'destroy'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.destroy');
-        Route::delete('roles/{role}/force', [RoleController::class, 'forceDestroy'])
-            ->middleware('permission:roles.manage')
-            ->name('roles.forceDestroy');
+        Route::prefix('backend/admin')->name('backend.admin.')->group(function () {
+            Route::get('/roles/data', [RoleController::class, 'data']);
+            Route::resource('roles', RoleController::class);
+        });
 
+        /**
+         * Category Route
+        */
+        Route::resource('categories', CategoryController::class);
         // Permissions
-        Route::get('permissions', [PermissionController::class, 'index'])
-            ->middleware('permission:permissions.manage')
-            ->name('permissions.index');
-        Route::post('permissions', [PermissionController::class, 'store'])
-            ->middleware('permission:permissions.manage')
-            ->name('permissions.store');
-        Route::put('permissions/{permission}', [PermissionController::class, 'update'])
-            ->middleware('permission:permissions.manage')
-            ->name('permissions.update');
-        Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])
-            ->middleware('permission:permissions.manage')
-            ->name('permissions.destroy');
+        // Route::get('permissions', [PermissionController::class, 'index'])
+        //     ->middleware('permission:permissions.manage')
+        //     ->name('permissions.index');
+        // Route::post('permissions', [PermissionController::class, 'store'])
+        //     ->middleware('permission:permissions.manage')
+        //     ->name('permissions.store');
+        // Route::put('permissions/{permission}', [PermissionController::class, 'update'])
+        //     ->middleware('permission:permissions.manage')
+        //     ->name('permissions.update');
+        // Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])
+        //     ->middleware('permission:permissions.manage')
+        //     ->name('permissions.destroy');
 
         // support route
         Route::get('support', [SupportController::class, 'index'])
